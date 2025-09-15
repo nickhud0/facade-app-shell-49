@@ -1,10 +1,12 @@
-import { ArrowLeft, Download, Share, FileText } from "lucide-react";
+import { ArrowLeft, Download, Share, FileText, Printer } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useState } from "react";
 import { pdfService, ComandaParaPDF } from "@/services/print/pdfService";
+import { useComandasOffline } from "@/hooks/useComandasOffline";
+import { Comanda } from "@/services/database";
 import { toast } from "sonner";
 
 const ImprimirComanda = () => {
@@ -12,14 +14,64 @@ const ImprimirComanda = () => {
   const { comandaId } = useParams();
   const [comanda, setComanda] = useState<ComandaParaPDF | null>(null);
   const [loading, setLoading] = useState(true);
+  const { comandasCache, buscarComandaPorNumero, isOnline } = useComandasOffline();
 
   useEffect(() => {
     const loadComanda = async () => {
       try {
-        const comandaData = await pdfService.getComandaParaPDF(
-          comandaId ? parseInt(comandaId) : undefined
-        );
-        setComanda(comandaData);
+        let comandaData: Comanda | null = null;
+
+        if (comandaId) {
+          // Buscar comanda específica por ID
+          const comandas = comandasCache.filter(c => c.id === parseInt(comandaId));
+          comandaData = comandas.length > 0 ? comandas[0] : null;
+          
+          // Se não encontrou no cache, tentar buscar por número
+          if (!comandaData) {
+            const numeroComanda = `COM-${String(comandaId).padStart(3, '0')}`;
+            comandaData = await buscarComandaPorNumero(numeroComanda);
+          }
+        } else {
+          // Buscar a última comanda finalizada
+          const comandasFinalizadas = comandasCache.filter(c => c.status === 'finalizada');
+          comandaData = comandasFinalizadas.length > 0 ? comandasFinalizadas[0] : null;
+        }
+
+        if (comandaData) {
+          // Converter para formato do PDF
+          const comandaDate = new Date(comandaData.created_at || new Date());
+          
+          const formatDate = (date: Date) => {
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          };
+          
+          const formatTime = (date: Date) => {
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+          };
+          
+          const comandaParaPDF: ComandaParaPDF = {
+            numero: comandaData.numero || `COM-${String(comandaData.id).padStart(3, '0')}`,
+            data: formatDate(comandaDate),
+            horario: formatTime(comandaDate),
+            tipo: comandaData.tipo || 'venda',
+            itens: (comandaData.itens || []).map(item => ({
+              produto: item.material || 'Item',
+              quantidade: item.quantidade || 1,
+              precoUnitario: item.preco || 0,
+              total: (item.quantidade || 1) * (item.preco || 0)
+            })),
+            total: comandaData.total || 0
+          };
+          
+          setComanda(comandaParaPDF);
+        } else {
+          setComanda(null);
+        }
       } catch (error) {
         console.error('Erro ao carregar comanda:', error);
         toast.error('Erro ao carregar comanda');
@@ -29,23 +81,58 @@ const ImprimirComanda = () => {
     };
 
     loadComanda();
-  }, [comandaId]);
+  }, [comandaId, comandasCache, buscarComandaPorNumero]);
 
   const handleDownloadPDF = async () => {
     try {
-      const success = await pdfService.downloadComandaPDF(
-        comandaId ? parseInt(comandaId) : undefined
-      );
-      
-      if (success) {
-        toast.success('PDF baixado com sucesso!');
-      } else {
-        toast.error('Erro ao gerar PDF');
+      if (!comanda) {
+        toast.error('Nenhuma comanda para gerar PDF');
+        return;
       }
+
+      const pdf = pdfService.generateComandaPDF(comanda);
+      pdf.save(`comanda-${comanda.numero}.pdf`);
+      
+      toast.success('PDF baixado com sucesso!');
     } catch (error) {
       console.error('Erro ao baixar PDF:', error);
       toast.error('Erro ao baixar PDF');
     }
+  };
+
+  const handleWhatsAppShare = () => {
+    if (!comanda) {
+      toast.error('Nenhuma comanda para compartilhar');
+      return;
+    }
+
+    const message = `*Comanda ${comanda.numero}*\n` +
+      `Data: ${comanda.data} - ${comanda.horario}\n` +
+      `Tipo: ${comanda.tipo.toUpperCase()}\n\n` +
+      `*Itens:*\n` +
+      comanda.itens.map(item => 
+        `${item.produto}\n${item.quantidade}x R$ ${item.precoUnitario.toFixed(2)} = R$ ${item.total.toFixed(2)}`
+      ).join('\n\n') +
+      `\n\n*TOTAL: R$ ${comanda.total.toFixed(2)}*\n\n` +
+      `_Reciclagem Pereque_\n` +
+      `Ubatuba, Pereque Mirim, Av Marginal, 2504\n` +
+      `12 99162-0321`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handlePrint = () => {
+    if (!comanda) {
+      toast.error('Nenhuma comanda para imprimir');
+      return;
+    }
+
+    // Implementar lógica de impressão térmica aqui
+    // Por enquanto, usar a impressão do navegador
+    window.print();
   };
 
   if (loading) {
@@ -161,12 +248,21 @@ const ImprimirComanda = () => {
 
       {/* Ações */}
       <div className="space-y-3 max-w-sm mx-auto">
-        <Button variant="outline" className="w-full h-12">
+        <Button 
+          variant="outline" 
+          className="w-full h-12"
+          onClick={handleWhatsAppShare}
+        >
           <Share className="mr-2 h-5 w-5" />
-          Compartilhar
+          Compartilhar WhatsApp
         </Button>
 
-        <Button variant="outline" className="w-full h-12">
+        <Button 
+          variant="outline" 
+          className="w-full h-12"
+          onClick={handlePrint}
+        >
+          <Printer className="mr-2 h-5 w-5" />
           Imprimir
         </Button>
 
@@ -188,6 +284,7 @@ const ImprimirComanda = () => {
               {comandaId ? 'Comanda Selecionada' : 'Última Comanda'}
             </h3>
             <p className="text-sm text-muted-foreground">
+              Status: {isOnline ? 'Online' : 'Offline'} • 
               Use as opções acima para baixar o PDF, compartilhar ou imprimir a comanda.
             </p>
           </div>
