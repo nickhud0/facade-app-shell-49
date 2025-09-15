@@ -27,8 +27,6 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   return (
     <AppInitializer>
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -50,6 +48,8 @@ const AppContent = () => {
           <Route path="/imprimir-comanda/:comandaId" element={<ImprimirComanda />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Toaster />
+        <Sonner />
       </BrowserRouter>
     </AppInitializer>
   );
