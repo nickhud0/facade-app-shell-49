@@ -66,6 +66,8 @@ export interface ComandaItem {
 export interface Comanda {
   id?: number;
   numero: string;
+  prefixo_dispositivo?: string;
+  numero_local?: number;
   tipo: 'compra' | 'venda';
   total: number;
   status: 'ativa' | 'finalizada' | 'cancelada';

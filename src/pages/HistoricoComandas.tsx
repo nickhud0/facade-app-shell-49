@@ -245,7 +245,9 @@ const HistoricoComandas = () => {
                     )}
                     <div>
                       <h3 className="font-semibold text-foreground text-sm">
-                        {comanda.numero}
+                        {comanda.prefixo_dispositivo && comanda.numero_local 
+                          ? `${comanda.prefixo_dispositivo}-${comanda.numero_local}`
+                          : comanda.numero}
                       </h3>
                       <p className="text-xs text-muted-foreground">
                         {comanda.cliente}
@@ -294,7 +296,9 @@ const HistoricoComandas = () => {
                   ) : (
                     <ShoppingCart className="h-5 w-5 text-primary" />
                   )}
-                  {comanda.numero} - {comanda.tipo === "venda" ? "Venda" : "Compra"}
+                  {comanda.prefixo_dispositivo && comanda.numero_local 
+                    ? `${comanda.prefixo_dispositivo}-${comanda.numero_local}`
+                    : comanda.numero} - {comanda.tipo === "venda" ? "Venda" : "Compra"}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4">

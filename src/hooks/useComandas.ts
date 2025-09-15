@@ -86,11 +86,17 @@ export const useComandas = () => {
     }
 
     try {
-      const numeroComanda = `COM-${Date.now()}`;
+      // Importar prefixoService dinamicamente
+      const { prefixoService } = await import('@/services/prefixoService');
+      
+      // Gerar código da comanda usando prefixo + número sequencial
+      const { codigoCompleto, prefixo, numeroLocal } = await prefixoService.gerarProximoNumeroComanda();
       
       // Preparar dados da comanda para o sistema offline
       const comanda: Omit<ComandaDB, 'id'> = {
-        numero: numeroComanda,
+        numero: codigoCompleto,
+        prefixo_dispositivo: prefixo,
+        numero_local: numeroLocal,
         tipo: comandaAtual.tipo,
         total: comandaAtual.total,
         status: 'finalizada',
@@ -116,7 +122,7 @@ export const useComandas = () => {
         const historicoStorage = JSON.parse(localStorage.getItem('historicoComandas') || '[]');
         const comandaHistorico = {
           id: Date.now(),
-          numero: numeroComanda,
+          numero: codigoCompleto,
           data: new Date().toISOString().split('T')[0],
           horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
           total: comandaAtual.total,

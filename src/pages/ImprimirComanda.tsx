@@ -62,7 +62,9 @@ const ImprimirComanda = () => {
     const itensAgrupados = agruparMateriais(comandaData.itens || []);
     
     return {
-      numero: comandaData.numero || `COM-${String(comandaData.id).padStart(3, '0')}`,
+      numero: comandaData.prefixo_dispositivo && comandaData.numero_local 
+        ? `${comandaData.prefixo_dispositivo}-${comandaData.numero_local}`
+        : comandaData.numero || `COM-${String(comandaData.id).padStart(3, '0')}`,
       data: formatDate(comandaDate),
       horario: formatTime(comandaDate),
       tipo: comandaData.tipo || 'venda',
