@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import { databaseV2Service } from '../databaseV2';
 import { supabaseService } from '../supabase';
 import { networkService } from '../networkService';
+import { formatarCodigoComanda } from '@/utils/comandaCode';
 
 export interface ComandaParaPDF {
   numero: string;
@@ -103,7 +104,7 @@ export const pdfService = {
       const itensAgrupados = this.agruparMateriais(comanda.itens || []);
       
       return {
-        numero: `COM-${String(comanda.id).padStart(3, '0')}`,
+        numero: formatarCodigoComanda(comanda),
         data: formatDate(comandaDate),
         horario: formatTime(comandaDate),
         tipo: comanda.tipo || 'venda',

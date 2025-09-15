@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useComandasOffline } from "@/hooks/useComandasOffline";
+import { formatarCodigoComanda } from "@/utils/comandaCode";
 
 // Dados mock para histórico de comandas
 const comandasMock = [
@@ -245,9 +246,7 @@ const HistoricoComandas = () => {
                     )}
                     <div>
                       <h3 className="font-semibold text-foreground text-sm">
-                        {comanda.prefixo_dispositivo && comanda.numero_local 
-                          ? `${comanda.prefixo_dispositivo}-${comanda.numero_local}`
-                          : comanda.numero}
+                        {formatarCodigoComanda(comanda)}
                       </h3>
                       <p className="text-xs text-muted-foreground">
                         {comanda.cliente}
@@ -296,9 +295,7 @@ const HistoricoComandas = () => {
                   ) : (
                     <ShoppingCart className="h-5 w-5 text-primary" />
                   )}
-                  {comanda.prefixo_dispositivo && comanda.numero_local 
-                    ? `${comanda.prefixo_dispositivo}-${comanda.numero_local}`
-                    : comanda.numero} - {comanda.tipo === "venda" ? "Venda" : "Compra"}
+                  {formatarCodigoComanda(comanda)} - {comanda.tipo === "venda" ? "Venda" : "Compra"}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4">

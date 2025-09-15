@@ -8,6 +8,7 @@ import { pdfService, ComandaParaPDF } from "@/services/print/pdfService";
 import { useComandasOffline } from "@/hooks/useComandasOffline";
 import { Comanda } from "@/services/database";
 import { toast } from "sonner";
+import { formatarCodigoComanda } from "@/utils/comandaCode";
 
 const ImprimirComanda = () => {
   const navigate = useNavigate();
@@ -62,9 +63,7 @@ const ImprimirComanda = () => {
     const itensAgrupados = agruparMateriais(comandaData.itens || []);
     
     return {
-      numero: comandaData.prefixo_dispositivo && comandaData.numero_local 
-        ? `${comandaData.prefixo_dispositivo}-${comandaData.numero_local}`
-        : comandaData.numero || `COM-${String(comandaData.id).padStart(3, '0')}`,
+      numero: formatarCodigoComanda(comandaData),
       data: formatDate(comandaDate),
       horario: formatTime(comandaDate),
       tipo: comandaData.tipo || 'venda',
@@ -213,7 +212,7 @@ const ImprimirComanda = () => {
         <div className="space-y-1 text-sm mb-4">
           <div className="flex justify-between">
             <span>Comanda:</span>
-            <span className="font-bold">{comanda.numero}</span>
+            <span className="font-bold">{formatarCodigoComanda(comanda as any)}</span>
           </div>
           <div className="flex justify-between">
             <span>Data:</span>
