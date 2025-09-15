@@ -21,40 +21,15 @@ import ImprimirComanda from "./pages/ImprimirComanda";
 
 const queryClient = new QueryClient();
 
-// Componente interno que usa hooks após providers estabelecidos
-const AppContent = () => {
-  return (
-    <AppInitializer>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/compra" element={<Compra />} />
-          <Route path="/venda" element={<Venda />} />
-          <Route path="/comanda-atual" element={<ComandaAtual />} />
-          <Route path="/historico-comandas" element={<HistoricoComandas />} />
-          <Route path="/fechamento" element={<Fechamento />} />
-          <Route path="/relatorios" element={<Relatorios />} />
-          <Route path="/ultimos" element={<Ultimos />} />
-          <Route path="/tabela-precos" element={<TabelaPrecos />} />
-          <Route path="/estoque" element={<Estoque />} />
-          <Route path="/cadastrar-material" element={<CadastrarMaterial />} />
-          <Route path="/cadastrar-despesa" element={<CadastrarDespesa />} />
-          <Route path="/vale" element={<Vale />} />
-          <Route path="/pendencias" element={<Pendencias />} />
-          <Route path="/configuracoes" element={<Configuracoes />} />
-          <Route path="/imprimir-comanda" element={<ImprimirComanda />} />
-          <Route path="/imprimir-comanda/:comandaId" element={<ImprimirComanda />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </AppInitializer>
-  );
-};
-
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContent />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<div className="p-8"><h1 className="text-2xl">App funcionando!</h1></div>} />
+          <Route path="*" element={<div className="p-8"><h1 className="text-2xl">Página não encontrada</h1></div>} />
+        </Routes>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 };
