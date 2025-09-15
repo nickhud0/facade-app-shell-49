@@ -34,11 +34,15 @@ export function useComandasOffline(): UseComandasOfflineReturn {
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
   const { toast } = useToast();
 
-  // Carregar cache local
+  // Carregar cache local (ordenado por data decrescente)
   const loadCache = useCallback(async () => {
     try {
       const comandas = await databaseService.getCachedComandas(20);
-      setComandasCache(comandas);
+      // Garantir ordenação decrescente por data de criação
+      const comandasOrdenadas = comandas.sort((a, b) => 
+        new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+      );
+      setComandasCache(comandasOrdenadas);
     } catch (error) {
       console.error('Error loading comandas cache:', error);
     } finally {
@@ -168,14 +172,20 @@ export function useComandasOffline(): UseComandasOfflineReturn {
     }
   }, [isOnline, comandasCache, toast]);
 
-  // Buscar comanda específica por número
+  // Buscar comanda específica por número (otimizado)
   const buscarComandaPorNumero = useCallback(async (numero: string): Promise<Comanda | null> => {
     try {
-      // Primeiro tentar no cache local
+      // Primeiro tentar no cache local (mais rápido)
+      const comandaNoCache = comandasCache.find(c => c.numero === numero);
+      if (comandaNoCache) {
+        return comandaNoCache;
+      }
+      
+      // Depois tentar no banco local
       let comanda = await databaseService.getComandaByNumero(numero);
       
       if (!comanda && isOnline && supabaseService.getConnectionStatus()) {
-        // Se não encontrou no cache e está online, buscar no servidor
+        // Se não encontrou e está online, buscar no servidor
         const resultados = await supabaseService.searchComandas(numero, 1);
         comanda = resultados.find(c => c.numero === numero) || null;
       }
@@ -185,7 +195,7 @@ export function useComandasOffline(): UseComandasOfflineReturn {
       console.error('Error finding comanda by numero:', error);
       return null;
     }
-  }, [isOnline]);
+  }, [isOnline, comandasCache]);
 
   // Sincronizar comandas pendentes
   const syncPendingComandas = useCallback(async (): Promise<{ success: number; failed: number }> => {

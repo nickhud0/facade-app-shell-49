@@ -12,9 +12,35 @@ import { toast } from "sonner";
 const ImprimirComanda = () => {
   const navigate = useNavigate();
   const { comandaId } = useParams();
-  const [comanda, setComanda] = useState<ComandaParaPDF | null>(null);
-  const [loading, setLoading] = useState(true);
   const { comandasCache, buscarComandaPorNumero, isOnline } = useComandasOffline();
+  const [comanda, setComanda] = useState<ComandaParaPDF | null>(null);
+  const [loading, setLoading] = useState(!comandasCache.length); // Só loading se cache vazio
+
+  // Função para agrupar materiais iguais
+  const agruparMateriais = (itens: any[]) => {
+    const materiaisAgrupados = new Map();
+    
+    itens.forEach(item => {
+      const nomeMaterial = item.material || item.produto || 'Item';
+      const preco = item.preco || item.precoUnitario || 0;
+      const quantidade = item.quantidade || 1;
+      
+      if (materiaisAgrupados.has(nomeMaterial)) {
+        const itemExistente = materiaisAgrupados.get(nomeMaterial);
+        itemExistente.quantidade += quantidade;
+        itemExistente.total = itemExistente.quantidade * itemExistente.precoUnitario;
+      } else {
+        materiaisAgrupados.set(nomeMaterial, {
+          produto: nomeMaterial,
+          quantidade: quantidade,
+          precoUnitario: preco,
+          total: quantidade * preco
+        });
+      }
+    });
+    
+    return Array.from(materiaisAgrupados.values());
+  };
 
   useEffect(() => {
     const loadComanda = async () => {
@@ -22,9 +48,8 @@ const ImprimirComanda = () => {
         let comandaData: Comanda | null = null;
 
         if (comandaId) {
-          // Buscar comanda específica por ID
-          const comandas = comandasCache.filter(c => c.id === parseInt(comandaId));
-          comandaData = comandas.length > 0 ? comandas[0] : null;
+          // Buscar comanda específica por ID (mais rápido)
+          comandaData = comandasCache.find(c => c.id === parseInt(comandaId)) || null;
           
           // Se não encontrou no cache, tentar buscar por número
           if (!comandaData) {
@@ -32,8 +57,10 @@ const ImprimirComanda = () => {
             comandaData = await buscarComandaPorNumero(numeroComanda);
           }
         } else {
-          // Buscar a última comanda finalizada
-          const comandasFinalizadas = comandasCache.filter(c => c.status === 'finalizada');
+          // Buscar a última comanda finalizada (primeira do array, já ordenado)
+          const comandasFinalizadas = comandasCache
+            .filter(c => c.status === 'finalizada')
+            .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
           comandaData = comandasFinalizadas.length > 0 ? comandasFinalizadas[0] : null;
         }
 
@@ -54,17 +81,15 @@ const ImprimirComanda = () => {
             return `${hours}:${minutes}`;
           };
           
+          // Agrupar materiais iguais antes de criar o PDF
+          const itensAgrupados = agruparMateriais(comandaData.itens || []);
+          
           const comandaParaPDF: ComandaParaPDF = {
             numero: comandaData.numero || `COM-${String(comandaData.id).padStart(3, '0')}`,
             data: formatDate(comandaDate),
             horario: formatTime(comandaDate),
             tipo: comandaData.tipo || 'venda',
-            itens: (comandaData.itens || []).map(item => ({
-              produto: item.material || 'Item',
-              quantidade: item.quantidade || 1,
-              precoUnitario: item.preco || 0,
-              total: (item.quantidade || 1) * (item.preco || 0)
-            })),
+            itens: itensAgrupados,
             total: comandaData.total || 0
           };
           
@@ -80,8 +105,73 @@ const ImprimirComanda = () => {
       }
     };
 
-    loadComanda();
+    // Carregar imediatamente se o cache já está disponível
+    if (comandasCache.length > 0 || comandaId) {
+      loadComanda();
+    } else {
+      // Se não há cache, aguardar um pouco para carregamento
+      setLoading(true);
+      const timeout = setTimeout(loadComanda, 100);
+      return () => clearTimeout(timeout);
+    }
   }, [comandaId, comandasCache, buscarComandaPorNumero]);
+
+  // Efeito separado para atualizar quando o cache carrega
+  useEffect(() => {
+    if (comandasCache.length > 0 && loading) {
+      const loadComanda = async () => {
+        try {
+          let comandaData: Comanda | null = null;
+
+          if (!comandaId) {
+            // Buscar a última comanda finalizada (primeira do array, já ordenado)
+            const comandasFinalizadas = comandasCache
+              .filter(c => c.status === 'finalizada')
+              .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+            comandaData = comandasFinalizadas.length > 0 ? comandasFinalizadas[0] : null;
+
+            if (comandaData) {
+              // Converter para formato do PDF
+              const comandaDate = new Date(comandaData.created_at || new Date());
+              
+              const formatDate = (date: Date) => {
+                const day = date.getDate().toString().padStart(2, '0');
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+              };
+              
+              const formatTime = (date: Date) => {
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                return `${hours}:${minutes}`;
+              };
+              
+              // Agrupar materiais iguais antes de criar o PDF
+              const itensAgrupados = agruparMateriais(comandaData.itens || []);
+              
+              const comandaParaPDF: ComandaParaPDF = {
+                numero: comandaData.numero || `COM-${String(comandaData.id).padStart(3, '0')}`,
+                data: formatDate(comandaDate),
+                horario: formatTime(comandaDate),
+                tipo: comandaData.tipo || 'venda',
+                itens: itensAgrupados,
+                total: comandaData.total || 0
+              };
+              
+              setComanda(comandaParaPDF);
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao carregar comanda do cache:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadComanda();
+    }
+  }, [comandasCache, loading, comandaId]);
 
   const handleDownloadPDF = async () => {
     try {

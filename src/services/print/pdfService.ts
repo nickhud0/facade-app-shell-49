@@ -18,6 +18,32 @@ export interface ComandaParaPDF {
 }
 
 export const pdfService = {
+  // Função para agrupar materiais iguais
+  agruparMateriais(itens: any[]) {
+    const materiaisAgrupados = new Map();
+    
+    itens.forEach(item => {
+      const nomeMaterial = item.material_nome || item.material || item.produto || 'Item';
+      const preco = item.preco || item.precoUnitario || 0;
+      const quantidade = item.quantidade || 1;
+      
+      if (materiaisAgrupados.has(nomeMaterial)) {
+        const itemExistente = materiaisAgrupados.get(nomeMaterial);
+        itemExistente.quantidade += quantidade;
+        itemExistente.total = itemExistente.quantidade * itemExistente.precoUnitario;
+      } else {
+        materiaisAgrupados.set(nomeMaterial, {
+          produto: nomeMaterial,
+          quantidade: quantidade,
+          precoUnitario: preco,
+          total: quantidade * preco
+        });
+      }
+    });
+    
+    return Array.from(materiaisAgrupados.values());
+  },
+
   async getComandaParaPDF(comandaId?: number): Promise<ComandaParaPDF | null> {
     try {
       let comanda;
@@ -73,17 +99,15 @@ export const pdfService = {
         return `${hours}:${minutes}`;
       };
       
+      // Agrupar materiais iguais antes de retornar
+      const itensAgrupados = this.agruparMateriais(comanda.itens || []);
+      
       return {
         numero: `COM-${String(comanda.id).padStart(3, '0')}`,
         data: formatDate(comandaDate),
         horario: formatTime(comandaDate),
         tipo: comanda.tipo || 'venda',
-        itens: (comanda.itens || []).map(item => ({
-          produto: item.material_nome || item.material || 'Item',
-          quantidade: item.quantidade || 1,
-          precoUnitario: item.preco || 0,
-          total: (item.quantidade || 1) * (item.preco || 0)
-        })),
+        itens: itensAgrupados,
         total: comanda.total || 0
       };
     } catch (error) {
