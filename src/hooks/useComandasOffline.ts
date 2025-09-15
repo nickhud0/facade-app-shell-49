@@ -129,6 +129,9 @@ export function useComandasOffline(): UseComandasOfflineReturn {
           comanda: comandaData,
           itens: itensData
         });
+
+        // Alimentar o histórico (comandas_cache) para a UI mostrar imediatamente
+        await databaseService.addComandaToCache(novaComanda);
       } else {
         // Fallback para o sistema antigo
         await databaseService.addComandaToCache(novaComanda);
