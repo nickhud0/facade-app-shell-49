@@ -1,10 +1,8 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppInitializer } from "./components/AppInitializer";
-import { useAppHealth } from "./hooks/useAppHealth";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Compra from "./pages/Compra";
@@ -27,8 +25,6 @@ const queryClient = new QueryClient();
 
 // Componente interno que usa hooks após providers estabelecidos
 const AppContent = () => {
-  const { healthStatus } = useAppHealth();
-
   return (
     <AppInitializer>
       <Toaster />
@@ -62,9 +58,7 @@ const AppContent = () => {
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AppContent />
-      </TooltipProvider>
+      <AppContent />
     </QueryClientProvider>
   );
 };
