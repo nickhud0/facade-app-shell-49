@@ -386,7 +386,10 @@ const HistoricoComandas = () => {
                     asChild
                     className="gap-2"
                   >
-                    <Link to={`/imprimir-comanda/${comanda.id}`}>
+                    <Link 
+                      to={`/imprimir-comanda/${comanda.id}`}
+                      state={{ comanda }}
+                    >
                       <Printer className="h-4 w-4" />
                       Imprimir
                     </Link>
