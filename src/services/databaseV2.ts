@@ -40,6 +40,8 @@ export interface ComandaItem {
 export interface Comanda {
   id: number;
   numero: string;
+  prefixo_dispositivo: string;
+  numero_local: number;
   tipo: 'compra' | 'venda';
   total: number;
   status: 'aberta' | 'finalizada' | 'cancelada';
@@ -125,6 +127,8 @@ class DatabaseV2Service {
       `CREATE TABLE IF NOT EXISTS comandas_v2 (
         id INTEGER PRIMARY KEY,
         numero TEXT NOT NULL UNIQUE,
+        prefixo_dispositivo TEXT NOT NULL,
+        numero_local INTEGER NOT NULL,
         tipo TEXT NOT NULL CHECK (tipo IN ('compra', 'venda')),
         total REAL NOT NULL DEFAULT 0,
         status TEXT NOT NULL DEFAULT 'aberta' CHECK (status IN ('aberta', 'finalizada', 'cancelada')),
@@ -133,7 +137,8 @@ class DatabaseV2Service {
         observacoes TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
-        version INTEGER DEFAULT 1
+        version INTEGER DEFAULT 1,
+        UNIQUE(prefixo_dispositivo, numero_local)
       );`,
 
       // Itens de comandas
@@ -166,6 +171,7 @@ class DatabaseV2Service {
 
       // Índices para performance
       `CREATE INDEX IF NOT EXISTS idx_comandas_numero ON comandas_v2(numero);`,
+      `CREATE INDEX IF NOT EXISTS idx_comandas_prefixo_local ON comandas_v2(prefixo_dispositivo, numero_local);`,
       `CREATE INDEX IF NOT EXISTS idx_comandas_status ON comandas_v2(status);`,
       `CREATE INDEX IF NOT EXISTS idx_comandas_tipo ON comandas_v2(tipo);`,
       `CREATE INDEX IF NOT EXISTS idx_comandas_created_at ON comandas_v2(created_at);`,
@@ -195,11 +201,13 @@ class DatabaseV2Service {
     // Inserir comanda
     await this.db.run(`
       INSERT OR REPLACE INTO comandas_v2 
-      (id, numero, tipo, total, status, cliente, dispositivo, observacoes, created_at, updated_at, version)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, numero, prefixo_dispositivo, numero_local, tipo, total, status, cliente, dispositivo, observacoes, created_at, updated_at, version)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       comanda.id,
       comanda.numero,
+      comanda.prefixo_dispositivo,
+      comanda.numero_local,
       comanda.tipo,
       comanda.total,
       comanda.status,
@@ -280,6 +288,29 @@ class DatabaseV2Service {
     }
 
     return comandas;
+  }
+
+  // Método para obter o próximo número local para um prefixo
+  async getProximoNumeroLocal(prefixo: string): Promise<number> {
+    if (!this.db) {
+      // Fallback para localStorage
+      const cached = localStorage.getItem('comandas_v2_cache') || '[]';
+      const comandas = JSON.parse(cached);
+      const comandasComPrefixo = comandas.filter((c: Comanda) => c.prefixo_dispositivo === prefixo);
+      const maiorNumero = comandasComPrefixo.reduce((max: number, c: Comanda) => 
+        Math.max(max, c.numero_local || 0), 0
+      );
+      return maiorNumero + 1;
+    }
+
+    const result = await this.db.query(`
+      SELECT MAX(numero_local) as max_numero 
+      FROM comandas_v2 
+      WHERE prefixo_dispositivo = ?
+    `, [prefixo]);
+
+    const maxNumero = (result.values?.[0] as any)?.max_numero || 0;
+    return maxNumero + 1;
   }
 
   // Sincronização melhorada com backoff exponencial

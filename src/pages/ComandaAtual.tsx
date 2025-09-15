@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getDeviceName } from "@/utils/deviceInfo";
 import { useOfflineData } from "@/hooks/useOfflineData";
 import { useComandasOffline } from "@/hooks/useComandasOffline";
+import { prefixoService } from "@/services/prefixoService";
 import { Transacao } from "@/services/database";
 import { useToast } from "@/hooks/use-toast";
 
@@ -140,10 +141,16 @@ const ComandaAtual = () => {
       await createItem(transacao);
     }
     
+    // Gerar código único da comanda usando o sistema de prefixos
+    const { prefixo, numeroLocal, codigoCompleto } = await prefixoService.gerarProximoNumeroComanda();
+    
     // Criar comanda usando o sistema offline-first
     const agora = new Date();
     const comandaParaSalvar = {
-      numero: `${comandaState.tipo === "venda" ? "V" : "C"}${String(Date.now()).slice(-6)}`,
+      id: Date.now(), // ID temporário único
+      numero: codigoCompleto, // Código no formato PREFIXO-NUMERO
+      prefixo_dispositivo: prefixo,
+      numero_local: numeroLocal,
       tipo: comandaState.tipo as 'compra' | 'venda',
       total: totalComanda,
       status: 'finalizada' as const,
@@ -187,7 +194,7 @@ const ComandaAtual = () => {
     
     toast({
       title: "Sucesso",
-      description: `${comandaState.tipo === 'venda' ? 'Venda' : 'Compra'} finalizada com sucesso!`
+      description: `${comandaState.tipo === 'venda' ? 'Venda' : 'Compra'} ${codigoCompleto} finalizada com sucesso!`
     });
     
     navigate("/");
@@ -221,7 +228,7 @@ const ComandaAtual = () => {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-lg font-semibold text-foreground">
-              Comanda #{comandaState.tipo === "venda" ? "V" : "C"}001
+              Nova Comanda
             </h2>
             <p className="text-sm text-muted-foreground">
               {comandaState.tipo === "venda" ? "Venda" : "Compra"} • Iniciada às 14:35

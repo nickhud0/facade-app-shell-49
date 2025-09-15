@@ -18,6 +18,8 @@ describe('DatabaseV2Service', () => {
       const comanda = {
         id: 1,
         numero: 'CMD001',
+        prefixo_dispositivo: 'A',
+        numero_local: 1,
         tipo: 'venda' as const,
         total: 100.50,
         status: 'finalizada' as const,
@@ -50,6 +52,8 @@ describe('DatabaseV2Service', () => {
         {
           id: 1,
           numero: 'CMD001',
+          prefixo_dispositivo: 'A',
+          numero_local: 1,
           tipo: 'venda' as const,
           total: 100,
           status: 'finalizada' as const,
@@ -59,6 +63,8 @@ describe('DatabaseV2Service', () => {
         {
           id: 2,
           numero: 'CMD002',
+          prefixo_dispositivo: 'A',
+          numero_local: 2,
           tipo: 'compra' as const,
           total: 200,
           status: 'finalizada' as const,

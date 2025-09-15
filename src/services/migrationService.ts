@@ -42,10 +42,16 @@ class MigrationService {
       const comandasAntigas = await this.getComandasV1();
       
       for (const comanda of comandasAntigas) {
+        // Para migração, assumir prefixo padrão e número sequencial
+        const prefixo = 'MIGR'; // Prefixo especial para comandas migradas
+        const numeroLocal = comanda.id; // Usar o ID como número local
+        
         await databaseV2Service.saveComanda(
           {
             id: comanda.id,
-            numero: comanda.numero,
+            numero: `${prefixo}-${numeroLocal}`, // Criar novo número no formato correto
+            prefixo_dispositivo: prefixo,
+            numero_local: numeroLocal,
             tipo: comanda.tipo,
             total: comanda.total,
             status: comanda.status === 'ativa' ? 'aberta' : comanda.status,

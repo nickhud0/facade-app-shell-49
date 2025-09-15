@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { databaseService, Comanda } from '@/services/database';
+import { databaseV2Service } from '@/services/databaseV2';
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
@@ -81,21 +82,58 @@ export function useComandasOffline(): UseComandasOfflineReturn {
   }, [isOnline, syncFromServer, loadCache]);
 
   // Criar comanda (offline-first)
-  const criarComanda = useCallback(async (comanda: Omit<Comanda, 'id'>): Promise<boolean> => {
+  const criarComanda = useCallback(async (comanda: any): Promise<boolean> => {
     try {
       const now = new Date().toISOString();
-      const novaComanda: Comanda = {
+      
+      // Preparar dados da comanda com todos os campos necessários
+      const novaComanda = {
         ...comanda,
-        id: Date.now(), // ID temporário para cache local
-        created_at: now,
+        id: comanda.id || Date.now(), // Usar ID fornecido ou gerar temporário
+        created_at: comanda.created_at || now,
         updated_at: now
       };
 
-      // Adicionar ao cache local primeiro (para feedback imediato)
-      await databaseService.addComandaToCache(novaComanda);
-      
-      // Adicionar à fila de sincronização
-      await databaseService.addToSyncQueue('criar_comanda', comanda);
+      // Se usando databaseV2, salvar com a nova estrutura
+      if (databaseV2Service && typeof databaseV2Service.saveComanda === 'function') {
+        // Preparar dados da comanda para databaseV2
+        const comandaData = {
+          id: novaComanda.id,
+          numero: novaComanda.numero,
+          prefixo_dispositivo: novaComanda.prefixo_dispositivo,
+          numero_local: novaComanda.numero_local,
+          tipo: novaComanda.tipo,
+          total: novaComanda.total,
+          status: novaComanda.status || 'aberta',
+          cliente: novaComanda.cliente,
+          dispositivo: novaComanda.dispositivo,
+          observacoes: novaComanda.observacoes,
+          created_at: novaComanda.created_at,
+          updated_at: novaComanda.updated_at
+        };
+
+        // Preparar itens
+        const itensData = (novaComanda.itens || []).map((item: any, index: number) => ({
+          material_id: item.material_id || index + 1,
+          material_nome: item.material || item.material_nome,
+          preco: item.preco,
+          quantidade: item.quantidade,
+          total: item.total
+        }));
+
+        // Salvar no databaseV2
+        await databaseV2Service.saveComanda(comandaData, itensData);
+
+        // Adicionar à fila de sincronização
+        await databaseV2Service.addToSyncQueue('criar_comanda', {
+          comanda: comandaData,
+          itens: itensData
+        });
+      } else {
+        // Fallback para o sistema antigo
+        await databaseService.addComandaToCache(novaComanda);
+        await databaseService.addToSyncQueue('criar_comanda', comanda);
+      }
       
       // Se online, tentar sincronizar imediatamente
       if (isOnline && supabaseService.getConnectionStatus()) {

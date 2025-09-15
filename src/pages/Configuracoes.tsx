@@ -1,4 +1,4 @@
-import { ArrowLeft, Settings, Database, Save } from "lucide-react";
+import { ArrowLeft, Settings, Database, Save, Hash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,18 +6,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { appService } from "@/services/appService";
+import { prefixoService } from "@/services/prefixoService";
 import { useToast } from "@/hooks/use-toast";
 
 const Configuracoes = () => {
   const navigate = useNavigate();
   const [supabaseUrl, setSupabaseUrl] = useState("");
   const [supabaseKey, setSupabaseKey] = useState("");
+  const [prefixoDispositivo, setPrefixoDispositivo] = useState("");
+  const [estatisticasPrefixo, setEstatisticasPrefixo] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingPrefixo, setLoadingPrefixo] = useState(false);
   const [supabaseConnected, setSupabaseConnected] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     loadCredentials();
+    loadPrefixoConfig();
     updateConnectionStatus();
     
     const interval = setInterval(updateConnectionStatus, 2000);
@@ -31,6 +36,17 @@ const Configuracoes = () => {
       setSupabaseKey(credentials.anonKey || "");
     } catch (error) {
       console.error('Error loading credentials:', error);
+    }
+  };
+
+  const loadPrefixoConfig = async () => {
+    try {
+      const prefixo = await prefixoService.getPrefixoDispositivo();
+      const stats = await prefixoService.getEstatisticasPrefixo();
+      setPrefixoDispositivo(prefixo);
+      setEstatisticasPrefixo(stats);
+    } catch (error) {
+      console.error('Error loading prefixo config:', error);
     }
   };
 
@@ -78,6 +94,37 @@ const Configuracoes = () => {
     }
   };
 
+  const handleSavePrefixo = async () => {
+    if (!prefixoDispositivo.trim()) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, preencha o prefixo do dispositivo",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoadingPrefixo(true);
+    
+    try {
+      await prefixoService.setPrefixoDispositivo(prefixoDispositivo);
+      await loadPrefixoConfig(); // Recarregar estatísticas
+      
+      toast({
+        title: "Prefixo salvo",
+        description: "Prefixo do dispositivo configurado com sucesso!",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao salvar prefixo",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingPrefixo(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-4">
       {/* Header */}
@@ -97,6 +144,61 @@ const Configuracoes = () => {
           </div>
           <Settings className="h-8 w-8 text-primary" />
         </div>
+      </Card>
+
+      {/* Configuração do Prefixo do Dispositivo */}
+      <Card className="mb-6 p-4">
+        <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+          <Hash className="mr-2 h-5 w-5" />
+          Prefixo do Dispositivo
+        </h2>
+        
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="prefixo-dispositivo">Prefixo (máximo 5 caracteres)</Label>
+            <Input 
+              id="prefixo-dispositivo"
+              placeholder="Ex: A, B, TAB1, DEV..."
+              className="mt-1"
+              value={prefixoDispositivo}
+              onChange={(e) => setPrefixoDispositivo(e.target.value.toUpperCase())}
+              maxLength={5}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Este prefixo será usado para identificar comandas criadas neste dispositivo
+            </p>
+          </div>
+
+          {estatisticasPrefixo && (
+            <div className="bg-accent/10 p-3 rounded-lg space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Prefixo atual:</span>
+                <span className="font-medium">{estatisticasPrefixo.prefixo}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Total de comandas:</span>
+                <span className="font-medium">{estatisticasPrefixo.totalComandas}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Próximo número:</span>
+                <span className="font-medium">{estatisticasPrefixo.ultimoNumero + 1}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Formato da próxima comanda:</span>
+                <span className="font-bold text-primary">{estatisticasPrefixo.prefixo}-{estatisticasPrefixo.ultimoNumero + 1}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <Button 
+          className="w-full mt-4 bg-gradient-to-r from-primary to-primary/80 border-0"
+          onClick={handleSavePrefixo}
+          disabled={loadingPrefixo}
+        >
+          <Save className="mr-2 h-4 w-4" />
+          {loadingPrefixo ? "Salvando..." : "Salvar Prefixo"}
+        </Button>
       </Card>
 
       {/* Credenciais Supabase */}
