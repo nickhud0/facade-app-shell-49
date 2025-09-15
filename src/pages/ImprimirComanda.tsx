@@ -21,7 +21,7 @@ const ImprimirComanda = () => {
     const materiaisAgrupados = new Map();
     
     itens.forEach(item => {
-      const nomeMaterial = item.material || item.produto || 'Item';
+      const nomeMaterial = item.material_nome || item.material || item.produto || 'Item';
       const preco = item.preco || item.precoUnitario || 0;
       const quantidade = item.quantidade || 1;
       

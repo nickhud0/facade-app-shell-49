@@ -103,8 +103,14 @@ export const pdfService = {
       // Agrupar materiais iguais antes de retornar
       const itensAgrupados = this.agruparMateriais(comanda.itens || []);
       
+      const codigo =
+        (comanda as any).numero
+        || ((comanda as any).prefixo_dispositivo && (comanda as any).numero_local != null
+             ? `${(comanda as any).prefixo_dispositivo}-${(comanda as any).numero_local}`
+             : `COM-${String(comanda.id).padStart(3, '0')}`);
+
       return {
-        numero: formatarCodigoComanda(comanda),
+        numero: codigo,
         data: formatDate(comandaDate),
         horario: formatTime(comandaDate),
         tipo: comanda.tipo || 'venda',
