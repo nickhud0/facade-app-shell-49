@@ -173,10 +173,12 @@ export const pdfService = {
     };
 
     // Cabeçalho
-    addCenteredText('Reciclagem Pereque', 10);
-    addCenteredText('Ubatuba, Pereque Mirim, Av Marginal, 2504', 8);
-    addCenteredText('12 99162-0321', 8);
-    addCenteredText('CNPJ/PIX - 45.492.161/0001-88', 8);
+    addCenteredText('Reciclagem Pereque', 9);
+    addCenteredText('Ubatuba, Pereque Mirim', 7);
+    addCenteredText('Av Marginal, 2504', 7);
+    addCenteredText('12 99162-0321', 7);
+    addCenteredText('CNPJ/PIX', 7);
+    addCenteredText('45.492.161/0001-88', 7);
     
     addSeparator();
 
