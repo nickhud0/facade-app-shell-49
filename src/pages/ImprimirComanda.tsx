@@ -14,7 +14,6 @@ const ImprimirComanda = () => {
   const { comandaId } = useParams();
   const { comandasCache, buscarComandaPorNumero, isOnline } = useComandasOffline();
   const [comanda, setComanda] = useState<ComandaParaPDF | null>(null);
-  const [loading, setLoading] = useState(!comandasCache.length); // Só loading se cache vazio
 
   // Função para agrupar materiais iguais
   const agruparMateriais = (itens: any[]) => {
@@ -42,13 +41,43 @@ const ImprimirComanda = () => {
     return Array.from(materiaisAgrupados.values());
   };
 
+  // Função para converter comanda para formato PDF
+  const convertComandaToPDF = (comandaData: Comanda): ComandaParaPDF => {
+    const comandaDate = new Date(comandaData.created_at || new Date());
+    
+    const formatDate = (date: Date) => {
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+    
+    const formatTime = (date: Date) => {
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    };
+    
+    // Agrupar materiais iguais antes de criar o PDF
+    const itensAgrupados = agruparMateriais(comandaData.itens || []);
+    
+    return {
+      numero: comandaData.numero || `COM-${String(comandaData.id).padStart(3, '0')}`,
+      data: formatDate(comandaDate),
+      horario: formatTime(comandaDate),
+      tipo: comandaData.tipo || 'venda',
+      itens: itensAgrupados,
+      total: comandaData.total || 0
+    };
+  };
+
   useEffect(() => {
     const loadComanda = async () => {
       try {
         let comandaData: Comanda | null = null;
 
         if (comandaId) {
-          // Buscar comanda específica por ID (mais rápido)
+          // Buscar comanda específica por ID
           comandaData = comandasCache.find(c => c.id === parseInt(comandaId)) || null;
           
           // Se não encontrou no cache, tentar buscar por número
@@ -57,7 +86,7 @@ const ImprimirComanda = () => {
             comandaData = await buscarComandaPorNumero(numeroComanda);
           }
         } else {
-          // Buscar a última comanda finalizada (primeira do array, já ordenado)
+          // Buscar a última comanda finalizada
           const comandasFinalizadas = comandasCache
             .filter(c => c.status === 'finalizada')
             .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
@@ -65,113 +94,22 @@ const ImprimirComanda = () => {
         }
 
         if (comandaData) {
-          // Converter para formato do PDF
-          const comandaDate = new Date(comandaData.created_at || new Date());
-          
-          const formatDate = (date: Date) => {
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-          };
-          
-          const formatTime = (date: Date) => {
-            const hours = date.getHours().toString().padStart(2, '0');
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            return `${hours}:${minutes}`;
-          };
-          
-          // Agrupar materiais iguais antes de criar o PDF
-          const itensAgrupados = agruparMateriais(comandaData.itens || []);
-          
-          const comandaParaPDF: ComandaParaPDF = {
-            numero: comandaData.numero || `COM-${String(comandaData.id).padStart(3, '0')}`,
-            data: formatDate(comandaDate),
-            horario: formatTime(comandaDate),
-            tipo: comandaData.tipo || 'venda',
-            itens: itensAgrupados,
-            total: comandaData.total || 0
-          };
-          
-          setComanda(comandaParaPDF);
+          setComanda(convertComandaToPDF(comandaData));
         } else {
           setComanda(null);
         }
       } catch (error) {
         console.error('Erro ao carregar comanda:', error);
         toast.error('Erro ao carregar comanda');
-      } finally {
-        setLoading(false);
+        setComanda(null);
       }
     };
 
-    // Carregar imediatamente se o cache já está disponível
+    // Carregar imediatamente se há dados ou se é uma comanda específica
     if (comandasCache.length > 0 || comandaId) {
       loadComanda();
-    } else {
-      // Se não há cache, aguardar um pouco para carregamento
-      setLoading(true);
-      const timeout = setTimeout(loadComanda, 100);
-      return () => clearTimeout(timeout);
     }
   }, [comandaId, comandasCache, buscarComandaPorNumero]);
-
-  // Efeito separado para atualizar quando o cache carrega
-  useEffect(() => {
-    if (comandasCache.length > 0 && loading) {
-      const loadComanda = async () => {
-        try {
-          let comandaData: Comanda | null = null;
-
-          if (!comandaId) {
-            // Buscar a última comanda finalizada (primeira do array, já ordenado)
-            const comandasFinalizadas = comandasCache
-              .filter(c => c.status === 'finalizada')
-              .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-            comandaData = comandasFinalizadas.length > 0 ? comandasFinalizadas[0] : null;
-
-            if (comandaData) {
-              // Converter para formato do PDF
-              const comandaDate = new Date(comandaData.created_at || new Date());
-              
-              const formatDate = (date: Date) => {
-                const day = date.getDate().toString().padStart(2, '0');
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const year = date.getFullYear();
-                return `${day}/${month}/${year}`;
-              };
-              
-              const formatTime = (date: Date) => {
-                const hours = date.getHours().toString().padStart(2, '0');
-                const minutes = date.getMinutes().toString().padStart(2, '0');
-                return `${hours}:${minutes}`;
-              };
-              
-              // Agrupar materiais iguais antes de criar o PDF
-              const itensAgrupados = agruparMateriais(comandaData.itens || []);
-              
-              const comandaParaPDF: ComandaParaPDF = {
-                numero: comandaData.numero || `COM-${String(comandaData.id).padStart(3, '0')}`,
-                data: formatDate(comandaDate),
-                horario: formatTime(comandaDate),
-                tipo: comandaData.tipo || 'venda',
-                itens: itensAgrupados,
-                total: comandaData.total || 0
-              };
-              
-              setComanda(comandaParaPDF);
-            }
-          }
-        } catch (error) {
-          console.error('Erro ao carregar comanda do cache:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      loadComanda();
-    }
-  }, [comandasCache, loading, comandaId]);
 
   const handleDownloadPDF = async () => {
     try {
@@ -225,16 +163,6 @@ const ImprimirComanda = () => {
     window.print();
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-4 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando comanda...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!comanda) {
     return (
