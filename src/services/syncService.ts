@@ -1,5 +1,7 @@
 import { databaseV2Service } from './databaseV2';
 import { supabaseService } from './supabase';
+import { logger } from '@/utils/logger';
+import { notifyError } from '@/utils/errorHandler';
 
 interface SyncResult {
   success: number;
@@ -17,8 +19,8 @@ class SyncService {
   private isSync = false;
   private backoffConfig: BackoffConfig = {
     baseDelay: 1000, // 1 segundo
-    maxDelay: 30000, // 30 segundos
-    maxRetries: 5
+    maxDelay: 10000, // 10 segundos  
+    maxRetries: 3     // máximo 3 tentativas
   };
 
   async processSyncQueue(): Promise<SyncResult> {
@@ -252,7 +254,7 @@ class SyncService {
         }]);
 
       if (error) {
-        console.error('Error syncing comanda:', error);
+        logger.error('Error syncing comanda:', error);
         return false;
       }
 
@@ -273,7 +275,7 @@ class SyncService {
 
       return true;
     } catch (error) {
-      console.error('Error in syncComanda:', error);
+      logger.error('Error in syncComanda:', error);
       return false;
     }
   }
@@ -296,7 +298,7 @@ class SyncService {
 
       return !error;
     } catch (error) {
-      console.error('Error in syncMaterial:', error);
+      logger.error('Error in syncMaterial:', error);
       return false;
     }
   }
@@ -320,7 +322,7 @@ class SyncService {
 
       return !error;
     } catch (error) {
-      console.error('Error in syncMaterialUpdate:', error);
+      logger.error('Error in syncMaterialUpdate:', error);
       return false;
     }
   }
@@ -343,7 +345,7 @@ class SyncService {
 
       return !error;
     } catch (error) {
-      console.error('Error in syncVale:', error);
+      logger.error('Error in syncVale:', error);
       return false;
     }
   }
@@ -366,7 +368,7 @@ class SyncService {
 
       return !error;
     } catch (error) {
-      console.error('Error in syncDespesa:', error);
+      logger.error('Error in syncDespesa:', error);
       return false;
     }
   }

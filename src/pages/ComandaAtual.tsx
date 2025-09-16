@@ -1,6 +1,8 @@
 import { ArrowLeft, Plus, Trash2, Save, Edit, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { logger } from '@/utils/logger';
+import { notifyError } from '@/utils/errorHandler';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -122,7 +124,7 @@ const ComandaAtual = () => {
   };
 
   const handleFinalizarComanda = async () => {
-    console.log('🚀 Finalizando comanda com', comandaState.itens.length, 'itens');
+    logger.debug('🚀 Finalizando comanda com', comandaState.itens.length, 'itens');
     
     // Salvar cada item da comanda como transação individual
     for (const item of comandaState.itens) {
@@ -137,7 +139,7 @@ const ComandaAtual = () => {
         created_at: new Date().toISOString()
       };
 
-      console.log('💾 Salvando transação:', transacao);
+      logger.debug('💾 Salvando transação:', transacao);
       await createItem(transacao);
     }
     
@@ -168,7 +170,7 @@ const ComandaAtual = () => {
       updated_at: agora.toISOString()
     };
 
-    console.log('💾 Salvando comanda completa:', comandaParaSalvar);
+    logger.debug('💾 Salvando comanda completa:', comandaParaSalvar);
     
     // Usar o sistema de comandas offline-first
     const success = await criarComanda(comandaParaSalvar);

@@ -7,6 +7,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState, useEffect } from "react";
+import { logger } from '@/utils/logger';
+import { notifyError } from '@/utils/errorHandler';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useRelatorios, RelatorioPeriodo } from "@/hooks/useRelatorios";
@@ -25,15 +27,14 @@ const Relatorios = () => {
     hasData 
   } = useRelatorios();
 
-  // Atualizar dados quando a página for carregada
   useEffect(() => {
-    console.log('🔄 Carregando dados dos relatórios...');
-    console.log('📊 hasData:', hasData, 'relatorioDiario:', relatorioDiario);
+    logger.debug('🔄 Carregando dados dos relatórios...');
+    logger.debug('📊 hasData:', hasData, 'relatorioDiario:', relatorioDiario);
     refreshData();
   }, [hasData]);
 
   const renderTotais = (dados: RelatorioPeriodo) => {
-    console.log('📈 Renderizando totais:', dados);
+    logger.debug('📈 Renderizando totais:', dados);
     return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
       <Card className="p-3 text-center bg-warning-light">

@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Bluetooth, Printer, Wifi, WifiOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { thermalPrinterService } from '@/services/thermalPrinterService';
 import { toast } from 'sonner';
+import { notifyError } from '@/utils/errorHandler';
 
 interface BluetoothDevice {
   name: string;
@@ -75,8 +76,7 @@ const PrinterManager = ({ open, onOpenChange, onPrinterConnected }: PrinterManag
         toast.success(`${foundDevices.length} impressora(s) encontrada(s)`, { id: 'scan' });
       }
     } catch (error) {
-      console.error('Erro ao buscar impressoras:', error);
-      toast.error('Erro ao buscar impressoras', { id: 'scan' });
+      notifyError(error, 'Buscar Impressoras');
     } finally {
       setScanning(false);
     }
@@ -99,8 +99,7 @@ const PrinterManager = ({ open, onOpenChange, onPrinterConnected }: PrinterManag
         toast.error('Falha na conexão', { id: 'connect' });
       }
     } catch (error) {
-      console.error('Erro ao conectar:', error);
-      toast.error('Erro ao conectar com a impressora', { id: 'connect' });
+      notifyError(error, 'Conectar Impressora');
     } finally {
       setConnecting(null);
     }
@@ -114,8 +113,7 @@ const PrinterManager = ({ open, onOpenChange, onPrinterConnected }: PrinterManag
       localStorage.removeItem('thermal_printer_device');
       toast.success('Impressora desconectada');
     } catch (error) {
-      console.error('Erro ao desconectar:', error);
-      toast.error('Erro ao desconectar');
+      notifyError(error, 'Desconectar Impressora');
     }
   };
 

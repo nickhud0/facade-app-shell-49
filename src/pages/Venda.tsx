@@ -1,6 +1,8 @@
 import { ArrowLeft, Plus, ShoppingCart, DollarSign, Package } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { logger } from '@/utils/logger';
+import { notifyError } from '@/utils/errorHandler';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -63,7 +65,7 @@ const Venda = () => {
     };
 
     // Salvar transação no banco offline
-    console.log('💾 Salvando transação de venda:', novaTransacao);
+    logger.debug('💾 Salvando transação de venda:', novaTransacao);
     const sucesso = await createItem(novaTransacao);
     
     if (sucesso) {

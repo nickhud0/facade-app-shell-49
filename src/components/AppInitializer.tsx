@@ -1,4 +1,6 @@
 import { ReactNode } from 'react';
+import { logger } from '@/utils/logger';
+import { notifyError } from '@/utils/errorHandler';
 
 interface AppInitializerProps {
   children: ReactNode;
@@ -12,7 +14,7 @@ export const AppInitializer = ({ children }: AppInitializerProps) => {
     // Inicialização assíncrona em background
     setTimeout(async () => {
       try {
-        console.log('🚀 Starting app initialization...');
+        logger.debug('🚀 Starting app initialization...');
         
         // Importações dinâmicas para evitar dependências circulares
         const { appService } = await import('@/services/appService');
@@ -22,9 +24,9 @@ export const AppInitializer = ({ children }: AppInitializerProps) => {
         await MobileOptimizations.initialize();
         MobileOptimizations.adaptUIForDevice();
         
-        console.log('✅ App initialization completed');
+        logger.debug('✅ App initialization completed');
       } catch (error) {
-        console.warn('⚠ App initialization failed:', error);
+        notifyError(error, 'Inicialização do App');
       }
     }, 100);
   }

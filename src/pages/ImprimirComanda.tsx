@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useState } from "react";
+import { logger } from '@/utils/logger';
+import { notifyError } from '@/utils/errorHandler';
 import { pdfService, ComandaParaPDF } from "@/services/print/pdfService";
 import { gerarPDF } from "@/services/pdfService";
 import { thermalPrinterService } from "@/services/thermalPrinterService";
@@ -120,8 +122,7 @@ const ImprimirComanda = () => {
             setComanda(null);
           }
         } catch (error) {
-          console.error('Erro ao carregar comanda:', error);
-          toast.error('Erro ao carregar comanda');
+          notifyError(error, 'Carregar Comanda');
           setComanda(null);
         } finally {
           setCarregando(false);
@@ -158,8 +159,7 @@ const ImprimirComanda = () => {
       
       toast.success('PDF baixado com sucesso!');
     } catch (error) {
-      console.error('Erro ao baixar PDF:', error);
-      toast.error('Erro ao baixar PDF');
+      notifyError(error, 'Baixar PDF');
     }
   };
 
@@ -183,8 +183,7 @@ const ImprimirComanda = () => {
       
       toast.success('Compartilhamento iniciado!', { id: 'whatsapp-share' });
     } catch (error) {
-      console.error('Erro ao gerar ou compartilhar PDF:', error);
-      toast.error('Erro ao compartilhar no WhatsApp', { id: 'whatsapp-share' });
+      notifyError(error, 'Compartilhar WhatsApp');
     }
   };
 
@@ -214,8 +213,7 @@ const ImprimirComanda = () => {
         toast.error('Erro ao imprimir comanda', { id: 'printer' });
       }
     } catch (error) {
-      console.error('Erro ao imprimir:', error);
-      toast.error('Erro ao conectar com a impressora. Verifique a conexão.', { id: 'printer' });
+      notifyError(error, 'Imprimir Comanda');
       setShowPrinterManager(true);
     }
   };
