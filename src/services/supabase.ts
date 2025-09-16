@@ -484,6 +484,52 @@ class SupabaseService {
       itens: typeof data.itens === 'string' ? JSON.parse(data.itens) : data.itens
     };
   }
+
+  // BUSCAR SOBRAS DA VIEW relatorio_vendas_excedentes
+  async buscarSobras(periodo: 'diario' | 'mensal' | 'anual' | 'personalizado', dataInicio?: Date, dataFim?: Date): Promise<any[]> {
+    if (!this.client || !this.isConnected) {
+      throw new Error('Supabase not connected');
+    }
+
+    try {
+      let query = this.client.from('relatorio_vendas_excedentes').select('*');
+
+      // Aplica filtros de período
+      switch (periodo) {
+        case 'diario':
+          query = query.gte('data', new Date().toISOString().split('T')[0]);
+          break;
+        case 'mensal':
+          const inicioMes = new Date();
+          inicioMes.setDate(1);
+          query = query.gte('data', inicioMes.toISOString().split('T')[0]);
+          break;
+        case 'anual':
+          const inicioAno = new Date();
+          inicioAno.setMonth(0, 1);
+          query = query.gte('data', inicioAno.toISOString().split('T')[0]);
+          break;
+        case 'personalizado':
+          if (dataInicio && dataFim) {
+            query = query
+              .gte('data', dataInicio.toISOString().split('T')[0])
+              .lte('data', dataFim.toISOString().split('T')[0]);
+          }
+          break;
+      }
+
+      // Ordenar por data mais recente primeiro
+      query = query.order('data', { ascending: false });
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Erro ao buscar sobras:', error);
+      throw error;
+    }
+  }
 }
 
 export const supabaseService = new SupabaseService();
