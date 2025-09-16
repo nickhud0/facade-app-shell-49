@@ -11,6 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { getSyncIcon, getSyncTooltip, getSyncIconColor } from "@/utils/syncStatus";
 
 // Dados mock para pendências
 const pendenciasIniciais = [
@@ -282,9 +283,23 @@ const Pendencias = () => {
                   </Badge>
                 </div>
                 
-                <h4 className="font-semibold text-foreground mb-1">
-                  {pendencia.cliente}
-                </h4>
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold text-foreground">
+                    {pendencia.cliente}
+                  </h4>
+                  {(() => {
+                    const syncStatus = (pendencia as any).sincronizado ? "synced" : "pending";
+                    const SyncIcon = getSyncIcon(syncStatus);
+                    return (
+                      <span 
+                        title={getSyncTooltip(syncStatus)}
+                        className={getSyncIconColor(syncStatus)}
+                      >
+                        <SyncIcon className="h-3 w-3" />
+                      </span>
+                    );
+                  })()}
+                </div>
                 
                 {pendencia.observacao && (
                   <p className="text-sm text-muted-foreground mb-2">

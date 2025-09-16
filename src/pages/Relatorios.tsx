@@ -1,4 +1,4 @@
-import { ArrowLeft, Calendar as CalendarIcon, RefreshCw } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, RefreshCw, BarChart3 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,12 +12,16 @@ import { notifyError } from '@/utils/errorHandler';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useRelatorios, RelatorioPeriodo } from "@/hooks/useRelatorios";
+import { formatLastUpdate } from "@/utils/syncStatus";
+import { networkService } from "@/services/networkService";
 
 
 const Relatorios = () => {
   const navigate = useNavigate();
   const [dataInicio, setDataInicio] = useState<Date>();
   const [dataFim, setDataFim] = useState<Date>();
+  const [isOnline, setIsOnline] = useState(networkService.getConnectionStatus());
+  const [ultimaAtualizacao, setUltimaAtualizacao] = useState<string>();
   const { 
     relatorioDiario, 
     relatorioMensal, 
@@ -31,7 +35,24 @@ const Relatorios = () => {
     logger.debug('🔄 Carregando dados dos relatórios...');
     logger.debug('📊 hasData:', hasData, 'relatorioDiario:', relatorioDiario);
     refreshData();
-  }, [hasData]);
+    
+    // Monitorar status da rede
+    const handleNetworkChange = (status: any) => {
+      setIsOnline(status.connected);
+    };
+    
+    networkService.addStatusListener(handleNetworkChange);
+    
+    // Verificar última atualização do localStorage
+    const lastUpdate = localStorage.getItem('relatorios_last_update');
+    if (lastUpdate) {
+      setUltimaAtualizacao(lastUpdate);
+    }
+    
+    return () => {
+      networkService.removeStatusListener(handleNetworkChange);
+    };
+  }, [hasData, refreshData]);
 
   const renderTotais = (dados: RelatorioPeriodo) => {
     logger.debug('📈 Renderizando totais:', dados);
@@ -119,12 +140,21 @@ const Relatorios = () => {
           variant="outline" 
           size="sm"
           onClick={refreshData}
-          className="ml-auto"
         >
           <RefreshCw className="h-4 w-4 mr-2" />
           Atualizar
         </Button>
       </div>
+
+      {/* Banner Offline */}
+      {!isOnline && (
+        <Card className="mb-4 p-3 bg-warning/10 border-warning/20">
+          <div className="flex items-center gap-2 text-sm text-warning-foreground">
+            <BarChart3 className="h-4 w-4" />
+            <span>📡 Offline — dados de {formatLastUpdate(ultimaAtualizacao)}</span>
+          </div>
+        </Card>
+      )}
 
       <Tabs defaultValue="diario" className="w-full">
         <TabsList className="grid w-full grid-cols-4">

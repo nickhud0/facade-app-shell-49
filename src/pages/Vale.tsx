@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { getSyncIcon, getSyncTooltip, getSyncIconColor } from "@/utils/syncStatus";
 
 // Dados mock para vales
 const vales = [
@@ -231,9 +232,23 @@ const Vale = () => {
               <div className="flex items-center">
                 <User className="h-5 w-5 text-accent mr-3" />
                 <div>
-                  <h4 className="font-semibold text-foreground">
-                    {vale.cliente}
-                  </h4>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-semibold text-foreground">
+                      {vale.cliente}
+                    </h4>
+                    {(() => {
+                      const syncStatus = (vale as any).sincronizado ? "synced" : "pending";
+                      const SyncIcon = getSyncIcon(syncStatus);
+                      return (
+                        <span 
+                          title={getSyncTooltip(syncStatus)}
+                          className={getSyncIconColor(syncStatus)}
+                        >
+                          <SyncIcon className="h-3 w-3" />
+                        </span>
+                      );
+                    })()}
+                  </div>
                   <p className="text-sm text-muted-foreground">
                     Registrado em {vale.data}
                   </p>

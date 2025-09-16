@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useComandasOffline } from "@/hooks/useComandasOffline";
 import { formatarCodigoComanda } from "@/utils/comandaCode";
+import { getSyncIcon, getSyncTooltip, getSyncIconColor } from "@/utils/syncStatus";
 
 // Dados mock para histórico de comandas
 const comandasMock = [
@@ -245,9 +246,23 @@ const HistoricoComandas = () => {
                       <ShoppingCart className="h-4 w-4 text-primary mr-2" />
                     )}
                     <div>
-                      <h3 className="font-semibold text-foreground text-sm">
-                        {formatarCodigoComanda(comanda)}
-                      </h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-foreground text-sm">
+                          {formatarCodigoComanda(comanda)}
+                        </h3>
+                        {(() => {
+                          const syncStatus = (comanda as any).sincronizado ? "synced" : "pending";
+                          const SyncIcon = getSyncIcon(syncStatus);
+                          return (
+                            <span 
+                              title={getSyncTooltip(syncStatus)}
+                              className={getSyncIconColor(syncStatus)}
+                            >
+                              <SyncIcon className="h-3 w-3" />
+                            </span>
+                          );
+                        })()}
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         {comanda.cliente}
                       </p>

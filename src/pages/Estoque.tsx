@@ -8,17 +8,38 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState, useEffect } from "react";
 import { useEstoque } from "@/hooks/useEstoque";
 import { NetworkStatus } from "@/components/NetworkStatus";
+import { formatLastUpdate } from "@/utils/syncStatus";
+import { networkService } from "@/services/networkService";
 
 const Estoque = () => {
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
   const [categoriaFiltro, setCategoriaFiltro] = useState("Todos");
+  const [isOnline, setIsOnline] = useState(networkService.getConnectionStatus());
+  const [ultimaAtualizacao, setUltimaAtualizacao] = useState<string>();
   const { itensEstoque, resumoEstoque, refreshData, hasData } = useEstoque();
 
   // Atualizar dados quando a página for carregada
   useEffect(() => {
     refreshData();
-  }, []);
+    
+    // Monitorar status da rede
+    const handleNetworkChange = (status: any) => {
+      setIsOnline(status.connected);
+    };
+    
+    networkService.addStatusListener(handleNetworkChange);
+    
+    // Verificar última atualização do localStorage
+    const lastUpdate = localStorage.getItem('estoque_last_update');
+    if (lastUpdate) {
+      setUltimaAtualizacao(lastUpdate);
+    }
+    
+    return () => {
+      networkService.removeStatusListener(handleNetworkChange);
+    };
+  }, [refreshData]);
 
   // Obter categorias únicas (dados fictícios para demo)
   const categorias = ["Todos", "Cobre", "Metais Ferrosos", "Alumínio", "Metais Não-Ferrosos", "Sucata Eletrônica"];
@@ -106,6 +127,16 @@ const Estoque = () => {
           <NetworkStatus />
         </div>
       </div>
+
+      {/* Banner Offline */}
+      {!isOnline && (
+        <Card className="mb-4 p-3 bg-warning/10 border-warning/20">
+          <div className="flex items-center gap-2 text-sm text-warning-foreground">
+            <Package className="h-4 w-4" />
+            <span>📡 Offline — dados de {formatLastUpdate(ultimaAtualizacao)}</span>
+          </div>
+        </Card>
+      )}
 
       {/* Resumo */}
       <Card className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-accent/10">

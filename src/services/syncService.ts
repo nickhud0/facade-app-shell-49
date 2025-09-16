@@ -101,6 +101,13 @@ class SyncService {
       // Limpar itens sincronizados
       await databaseV2Service.clearSyncedItems();
 
+      // Atualizar timestamp da última sincronização
+      if (result.success > 0) {
+        const now = new Date().toISOString();
+        localStorage.setItem('estoque_last_update', now);
+        localStorage.setItem('relatorios_last_update', now);
+      }
+
     } catch (error) {
       result.errors.push(`Sync process error: ${error}`);
     } finally {
