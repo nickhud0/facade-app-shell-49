@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useComandasOffline } from "@/hooks/useComandasOffline";
 import { formatarCodigoComanda } from "@/utils/comandaCode";
+import { formatDate, formatDateTime, formatCurrency } from "@/utils/formatters";
 import { getSyncIcon, getSyncTooltip, getSyncIconColor } from "@/utils/syncStatus";
 
 // Dados mock para histórico de comandas
@@ -293,8 +294,8 @@ const HistoricoComandas = () => {
                 <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
                   <span>
                     {comanda.created_at 
-                      ? new Date(comanda.created_at).toLocaleDateString('pt-BR') + ' às ' + 
-                        new Date(comanda.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                      ? formatDate(comanda.created_at) + ' às ' + 
+                        formatDateTime(comanda.created_at).split(' às ')[1]
                       : `${(comanda as any).data} às ${(comanda as any).horario}`
                     }
                   </span>
@@ -337,7 +338,7 @@ const HistoricoComandas = () => {
                     <p className="text-muted-foreground">Data:</p>
                     <p className="font-medium">
                       {comanda.created_at 
-                        ? new Date(comanda.created_at).toLocaleDateString('pt-BR')
+                        ? formatDate(comanda.created_at)
                         : (comanda as any).data
                       }
                     </p>

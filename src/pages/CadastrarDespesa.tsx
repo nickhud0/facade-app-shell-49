@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { formatDate } from "@/utils/formatters";
 
 interface Despesa {
   id: number;
@@ -152,7 +153,7 @@ const CadastrarDespesa = () => {
                 <span className="font-medium text-foreground">{despesa.descricao}</span>
                 <span className="font-bold text-destructive">{formatCurrency(despesa.valor)}</span>
                 <span className="text-sm text-muted-foreground">
-                  {format(new Date(despesa.created_at), "dd/MM/yyyy")}
+                  {formatDate(despesa.created_at)}
                 </span>
               </div>
             ))}

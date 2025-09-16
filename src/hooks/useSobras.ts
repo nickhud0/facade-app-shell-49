@@ -3,6 +3,7 @@ import { buscarSobras } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { notifyError } from '@/utils/errorHandler';
 import { logger } from '@/utils/logger';
+import { toYMD } from '@/utils/formatters';
 
 export interface SobraItem {
   material: string;
@@ -34,8 +35,8 @@ export const useSobras = () => {
     
     try {
       // Converter as datas para string no formato esperado
-      const dataInicioStr = dataInicio?.toISOString().split('T')[0];
-      const dataFimStr = dataFim?.toISOString().split('T')[0];
+      const dataInicioStr = dataInicio ? toYMD(dataInicio) : undefined;
+      const dataFimStr = dataFim ? toYMD(dataFim) : undefined;
       
       // Usar a função standalone buscarSobras
       const dados = await buscarSobras(periodo, dataInicioStr, dataFimStr);

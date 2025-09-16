@@ -41,9 +41,15 @@ export const formatWeight = (value: number): string => {
   return `${formatNumber(value, 2)} kg`;
 };
 
-// Converter data para formato YYYY-MM-DD (para queries)
+// Converter data para formato YYYY-MM-DD (para queries) sem problemas de fuso horário
+export const toYMD = (d: Date | string): string => {
+  const x = typeof d === 'string' ? new Date(d) : d;
+  return new Date(x.getFullYear(), x.getMonth(), x.getDate()).toISOString().split('T')[0];
+};
+
+// Converter data para formato YYYY-MM-DD (para queries) - deprecated, use toYMD()
 export const toDateString = (date: Date): string => {
-  return date.toISOString().split('T')[0];
+  return toYMD(date);
 };
 
 // Obter início do mês atual

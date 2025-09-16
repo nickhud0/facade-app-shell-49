@@ -2,6 +2,7 @@ import { databaseService } from './database';
 import { supabaseService, SupabaseConfig } from './supabase';
 import { networkService } from './networkService';
 import { initializeSampleData } from '@/utils/sampleData';
+import { logger } from '@/utils/logger';
 
 class AppService {
   private initialized = false;
@@ -10,12 +11,12 @@ class AppService {
     if (this.initialized) return;
 
     try {
-      console.log('Initializing app services...');
+      logger.info('Initializing app services...');
 
       // 1. Inicializar banco local SQLite
       try {
         await databaseService.initializeDatabase();
-        console.log('✓ SQLite database initialized');
+        logger.info('✓ SQLite database initialized');
       } catch (dbError) {
         console.warn('⚠ SQLite initialization failed, using localStorage:', dbError);
       }
@@ -23,7 +24,7 @@ class AppService {
       // 2. Inicializar serviço de rede
       try {
         await networkService.initialize();
-        console.log('✓ Network service initialized');
+        logger.info('✓ Network service initialized');
       } catch (networkError) {
         console.warn('⚠ Network service initialization failed:', networkError);
       }
@@ -31,7 +32,7 @@ class AppService {
       // 3. Inicializar dados de exemplo para testes locais
       try {
         await initializeSampleData();
-        console.log('✓ Sample data checked/initialized');
+        logger.info('✓ Sample data checked/initialized');
       } catch (sampleError) {
         console.warn('⚠ Sample data initialization failed:', sampleError);
       }
@@ -44,7 +45,7 @@ class AppService {
         if (supabaseService.getConnectionStatus() && networkService.getConnectionStatus()) {
           try {
             await this.syncEssentialData();
-            console.log('✓ Essential data synced on startup');
+            logger.info('✓ Essential data synced on startup');
           } catch (syncError) {
             console.warn('⚠ Essential data sync failed:', syncError);
           }
@@ -54,7 +55,7 @@ class AppService {
       }
 
       this.initialized = true;
-      console.log('✓ App services initialization completed');
+      logger.info('✓ App services initialization completed');
     } catch (error) {
       console.error('Error initializing app services:', error);
       // Não lançar erro para não travar o app
@@ -78,14 +79,14 @@ class AppService {
         if (connected && networkService.getConnectionStatus()) {
           // Se conectou e está online, sincronizar dados
           await supabaseService.syncAllData();
-          console.log('✓ Supabase connected and data synced');
+          logger.info('✓ Supabase connected and data synced');
         } else if (connected) {
-          console.log('✓ Supabase connected (offline mode)');
+          logger.info('✓ Supabase connected (offline mode)');
         } else {
-          console.log('⚠ Supabase connection failed - continuing in offline mode');
+          logger.warn('⚠ Supabase connection failed - continuing in offline mode');
         }
       } else {
-        console.log('⚠ No Supabase credentials found - running in local mode');
+        logger.warn('⚠ No Supabase credentials found - running in local mode');
       }
     } catch (error) {
       console.error('Error connecting to Supabase:', error);
@@ -98,7 +99,7 @@ class AppService {
       // Sincronizar apenas dados essenciais para funcionamento offline
       // Prioridade para materiais pois são necessários para compra/venda
       await supabaseService.syncAllData();
-      console.log('✓ Essential data (materials and prices) synced to local cache');
+      logger.info('✓ Essential data (materials and prices) synced to local cache');
     } catch (error) {
       console.error('Error syncing essential data:', error);
       throw error;

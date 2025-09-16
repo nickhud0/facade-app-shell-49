@@ -172,7 +172,7 @@ const Relatorios = () => {
 
         <TabsContent value="diario" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Relatório Diário - {format(new Date(), "dd/MM/yyyy")}</h2>
+            <h2 className="text-lg font-semibold text-foreground">Relatório Diário - {formatDate(new Date())}</h2>
             <SobrasPopup periodo="diario" />
           </div>
           {renderTotais({
@@ -211,7 +211,7 @@ const Relatorios = () => {
 
         <TabsContent value="mensal" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Relatório Mensal - {format(new Date(), "MMMM/yyyy")}</h2>
+            <h2 className="text-lg font-semibold text-foreground">Relatório Mensal - {format(new Date(), "MM/yyyy")}</h2>
             <SobrasPopup periodo="mensal" />
           </div>
           {renderTotais({

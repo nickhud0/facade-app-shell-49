@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from 'date-fns';
 import { useOfflineData } from '@/hooks/useOfflineData';
 import { Transacao, Despesa } from '@/services/database';
+import { logger } from '@/utils/logger';
 
 export interface TransacaoHistorico {
   id: number;
@@ -50,14 +51,14 @@ export const useRelatorios = () => {
   // Usar despesas do sistema offline-first em vez de localStorage direto
   useEffect(() => {
     // Usar dados do sistema offline (despesas já vem do useOfflineData)
-    console.log('📊 Transações carregadas:', transacoes.length);
-    console.log('💰 Despesas carregadas (sistema offline):', despesas.length);
+    logger.debug('📊 Transações carregadas:', transacoes.length);
+    logger.debug('💰 Despesas carregadas (sistema offline):', despesas.length);
     
     // Migrar despesas do localStorage para o sistema offline (apenas uma vez)
     const migrateFromLocalStorage = async () => {
       const despesasStorage = JSON.parse(localStorage.getItem('despesas') || '[]');
       if (despesasStorage.length > 0 && despesas.length === 0) {
-        console.log('🔄 Migrando despesas do localStorage para sistema offline...');
+        logger.debug('🔄 Migrando despesas do localStorage para sistema offline...');
         // Adicionar despesas ao sistema offline (seria implementado no useOfflineData para despesas)
       }
     };
@@ -83,8 +84,8 @@ export const useRelatorios = () => {
 
   // Função para calcular relatório para um período específico
   const calcularRelatorio = (dataInicio: Date, dataFim: Date): RelatorioPeriodo => {
-    console.log('📊 Calculando relatório de', dataInicio.toDateString(), 'até', dataFim.toDateString());
-    console.log('📊 Total de transações disponíveis:', transacoes.length);
+    logger.debug('📊 Calculando relatório de', dataInicio.toDateString(), 'até', dataFim.toDateString());
+    logger.debug('📊 Total de transações disponíveis:', transacoes.length);
     
     // Filtrar transações do período
     const transacoesPeriodo = transacoes.filter(transacao => {
@@ -95,7 +96,7 @@ export const useRelatorios = () => {
       });
     });
     
-    console.log('📊 Transações no período:', transacoesPeriodo.length);
+    logger.debug('📊 Transações no período:', transacoesPeriodo.length);
 
     // Filtrar despesas do período (usar dados do sistema offline)
     const despesasPeriodo = despesas.filter(despesa => {
@@ -110,15 +111,15 @@ export const useRelatorios = () => {
     const compras = transacoesPeriodo.filter(t => t.tipo === 'compra');
     const vendas = transacoesPeriodo.filter(t => t.tipo === 'venda');
     
-    console.log('📊 Compras no período:', compras.length);
-    console.log('📊 Vendas no período:', vendas.length);
+    logger.debug('📊 Compras no período:', compras.length);
+    logger.debug('📊 Vendas no período:', vendas.length);
 
     const totalCompras = compras.reduce((acc, transacao) => acc + transacao.valor_total, 0);
     const totalVendas = vendas.reduce((acc, transacao) => acc + transacao.valor_total, 0);
     const totalDespesas = despesasPeriodo.reduce((acc, despesa) => acc + despesa.valor, 0);
     const lucro = totalVendas - totalCompras - totalDespesas;
     
-    console.log('💰 Totais calculados:', { totalCompras, totalVendas, totalDespesas, lucro });
+    logger.debug('💰 Totais calculados:', { totalCompras, totalVendas, totalDespesas, lucro });
 
     // Agrupar materiais por tipo de transação
     const comprasPorMaterial = new Map<string, { kg: number; valor: number }>();
