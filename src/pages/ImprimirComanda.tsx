@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useState } from "react";
 import { pdfService, ComandaParaPDF } from "@/services/print/pdfService";
+import { thermalPrinterService } from "@/services/thermalPrinterService";
 import { useComandasOffline } from "@/hooks/useComandasOffline";
 import { Comanda } from "@/services/database";
 import { toast } from "sonner";
@@ -168,15 +169,26 @@ const ImprimirComanda = () => {
     window.open(whatsappUrl, '_blank');
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!comanda) {
       toast.error('Nenhuma comanda para imprimir');
       return;
     }
 
-    // Implementar lógica de impressão térmica aqui
-    // Por enquanto, usar a impressão do navegador
-    window.print();
+    try {
+      toast.loading('Conectando à impressora...', { id: 'printer' });
+      
+      const success = await thermalPrinterService.printComanda(comanda);
+      
+      if (success) {
+        toast.success('Comanda impressa com sucesso!', { id: 'printer' });
+      } else {
+        toast.error('Erro ao imprimir comanda', { id: 'printer' });
+      }
+    } catch (error) {
+      console.error('Erro ao imprimir:', error);
+      toast.error('Erro ao conectar com a impressora', { id: 'printer' });
+    }
   };
 
   // Mostrar loading se ainda carregando
