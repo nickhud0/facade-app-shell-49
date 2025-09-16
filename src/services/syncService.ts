@@ -2,6 +2,7 @@ import { databaseV2Service } from './databaseV2';
 import { supabaseService } from './supabase';
 import { logger } from '@/utils/logger';
 import { notifyError } from '@/utils/errorHandler';
+import { toYMD } from '@/utils/formatters';
 
 interface SyncResult {
   success: number;
@@ -257,7 +258,7 @@ class SyncService {
           cliente: comanda.cliente,
           dispositivo: comanda.dispositivo,
           observacoes: comanda.observacoes,
-          data: comanda.created_at || new Date().toISOString()
+          data: comanda.created_at ? toYMD(comanda.created_at) : toYMD(new Date())
         }]);
 
       if (error) {
@@ -345,7 +346,7 @@ class SyncService {
           numero: vale.numero,
           cliente: vale.cliente,
           valor: vale.valor,
-          data: vale.data || new Date().toISOString(),
+          data: vale.data ? toYMD(vale.data) : toYMD(new Date()),
           status: vale.status || 'aberto',
           observacoes: vale.observacoes
         }]);
@@ -368,7 +369,7 @@ class SyncService {
           tipo: 'eu devo',
           descricao: despesa.descricao,
           valor: despesa.valor,
-          data: despesa.data || new Date().toISOString(),
+          data: despesa.data ? toYMD(despesa.data) : toYMD(new Date()),
           pessoa: despesa.pessoa,
           status: 'pendente'
         }]);

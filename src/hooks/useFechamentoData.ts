@@ -3,6 +3,7 @@ import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
+import { toYMD } from '@/utils/formatters';
 
 export interface PeriodoAtual {
   receitas: number;
@@ -166,7 +167,7 @@ export function useFechamentoData(): UseFechamentoDataReturn {
 
       // Criar registro de fechamento
       const fechamentoData = {
-        data_fechamento: new Date().toISOString(),
+        data_fechamento: toYMD(new Date()),
         receitas: periodoAtual.receitas,
         compras: periodoAtual.compras,
         despesas: periodoAtual.despesas,
