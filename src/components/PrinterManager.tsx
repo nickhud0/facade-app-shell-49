@@ -123,6 +123,16 @@ const PrinterManager = ({ open, onOpenChange, onPrinterConnected }: PrinterManag
     }
   };
 
+  const printTest = async () => {
+    try {
+      toast.loading('Imprimindo teste...', { id: 'print-test' });
+      await thermalPrinterService.printTest();
+      toast.success('Teste impresso com sucesso!', { id: 'print-test' });
+    } catch (error) {
+      notifyError(error, 'Imprimir Teste');
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -162,29 +172,40 @@ const PrinterManager = ({ open, onOpenChange, onPrinterConnected }: PrinterManag
                 <div className="text-sm text-muted-foreground">
                   Endereço: <span className="font-mono text-xs">{connectedDevice.address}</span>
                 </div>
-                <div className="flex gap-2 mt-3">
-                  {isConnected ? (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={disconnect}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <WifiOff className="h-3 w-3 mr-1" />
-                      Desconectar
-                    </Button>
-                  ) : (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={reconnect}
-                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                    >
-                      <Wifi className="h-3 w-3 mr-1" />
-                      Reconectar
-                    </Button>
-                  )}
-                </div>
+                  <div className="flex gap-2 mt-3">
+                    {isConnected ? (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={printTest}
+                          className="text-green-600 border-green-200 hover:bg-green-50"
+                        >
+                          <Printer className="h-3 w-3 mr-1" />
+                          Imprimir teste
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={disconnect}
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          <WifiOff className="h-3 w-3 mr-1" />
+                          Desconectar
+                        </Button>
+                      </>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={reconnect}
+                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                      >
+                        <Wifi className="h-3 w-3 mr-1" />
+                        Reconectar
+                      </Button>
+                    )}
+                  </div>
               </div>
             )}
           </Card>

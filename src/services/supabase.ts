@@ -616,28 +616,64 @@ export async function buscarSobras(periodo: string, dataInicio?: string, dataFim
 
     let query = supabaseService.client.from("relatorio_vendas_excedentes").select("*");
 
-    // Aplica filtros de período
-    if (periodo === "mensal") {
-      const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-      query = query.gte("data", inicioMes);
-    } else if (periodo === "anual") {
-      const inicioAno = new Date(new Date().getFullYear(), 0, 1).toISOString();
-      query = query.gte("data", inicioAno);
-    } else if (periodo === "personalizado" && dataInicio && dataFim) {
-      query = query.gte("data", dataInicio).lte("data", dataFim);
+    const hoje = new Date();
+    let dataInicioFiltro: string;
+    let dataFimFiltro: string;
+
+    // Função para converter data para YYYY-MM-DD sem problemas de fuso
+    const toYMD = (d: Date | string) => {
+      const x = typeof d === 'string' ? new Date(d) : d;
+      return new Date(x.getFullYear(), x.getMonth(), x.getDate()).toISOString().split('T')[0];
+    };
+
+    switch (periodo) {
+      case 'diario':
+        dataInicioFiltro = toYMD(hoje);
+        dataFimFiltro = dataInicioFiltro;
+        break;
+      case 'mensal':
+        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        dataInicioFiltro = toYMD(inicioMes);
+        dataFimFiltro = toYMD(hoje);
+        break;
+      case 'anual':
+        const inicioAno = new Date(hoje.getFullYear(), 0, 1);
+        dataInicioFiltro = toYMD(inicioAno);
+        dataFimFiltro = toYMD(hoje);
+        break;
+      case 'personalizado':
+        if (!dataInicio || !dataFim) {
+          throw new Error('Datas de início e fim são obrigatórias para período personalizado');
+        }
+        dataInicioFiltro = dataInicio;
+        dataFimFiltro = dataFim;
+        break;
+      default:
+        throw new Error('Período inválido');
     }
 
-    // Ordenar por data mais recente primeiro
-    query = query.order("data", { ascending: false });
+    query = query
+      .gte('data', dataInicioFiltro)
+      .lte('data', dataFimFiltro)
+      .order('data', { ascending: false });
 
     const { data, error } = await query;
-    if (error) throw error;
 
-    // Salvar no cache offline
-    localStorage.setItem("sobrasCache", JSON.stringify(data || []));
+    if (error) {
+      console.error("Erro ao buscar sobras:", error);
+      throw error;
+    }
+
+    // Salvar cache offline
+    if (data) {
+      localStorage.setItem("sobrasCache", JSON.stringify(data));
+      localStorage.setItem('sobras_last_update', new Date().toISOString());
+    }
+
     return data || [];
-  } catch (e) {
-    console.error("Erro ao buscar sobras:", e);
+  } catch (error) {
+    console.error("Erro ao buscar sobras:", error);
+    
     // Fallback para cache offline
     const cache = localStorage.getItem("sobrasCache");
     return cache ? JSON.parse(cache) : [];

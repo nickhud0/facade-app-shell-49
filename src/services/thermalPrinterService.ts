@@ -287,6 +287,45 @@ class ThermalPrinterService {
     }
   }
 
+  async printTest(): Promise<boolean> {
+    if (!this.connected) {
+      throw new Error('Impressora não conectada');
+    }
+
+    const printer = BluetoothPrinter || window.BluetoothPrinter;
+    if (!printer) {
+      throw new Error('Plugin de impressora Bluetooth não disponível');
+    }
+
+    try {
+      const testData = 
+        this.INIT +
+        this.CENTER +
+        this.BOLD_ON +
+        "TESTE DE IMPRESSÃO\n" +
+        this.BOLD_OFF +
+        this.LEFT +
+        "\n" +
+        "Data: " + new Date().toLocaleDateString('pt-BR') + "\n" +
+        "Hora: " + new Date().toLocaleTimeString('pt-BR') + "\n" +
+        "\n" +
+        "Caracteres especiais:\n" +
+        "ção, não, coração\n" +
+        "Preço: R$ 123,45\n" +
+        "\n" +
+        this.CENTER +
+        "✓ TESTE OK ✓\n" +
+        "\n\n" +
+        this.CUT;
+
+      const success = await printer.print(testData);
+      return success;
+    } catch (error) {
+      console.error('Erro no teste de impressão:', error);
+      throw error;
+    }
+  }
+
   async listPrinters(): Promise<any[]> {
     await this.ensurePermissions();
     
