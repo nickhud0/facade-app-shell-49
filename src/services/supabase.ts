@@ -485,6 +485,36 @@ class SupabaseService {
     };
   }
 
+  // BUSCAR ESTOQUE ATUAL DA VIEW estoque_atual
+  async buscarEstoqueAtual(): Promise<any[]> {
+    try {
+      // Se offline, usar cache
+      if (!this.client || !this.isConnected) {
+        const cache = localStorage.getItem('estoqueAtualCache');
+        return cache ? JSON.parse(cache) : [];
+      }
+
+      const { data, error } = await this.client
+        .from('estoque_atual')
+        .select('*')
+        .order('material_nome', { ascending: true });
+
+      if (error) throw error;
+
+      // Salva no cache offline
+      const result = data || [];
+      localStorage.setItem('estoqueAtualCache', JSON.stringify(result));
+      
+      return result;
+    } catch (error) {
+      console.error('Erro ao buscar estoque atual:', error);
+      
+      // Fallback para cache offline
+      const cache = localStorage.getItem('estoqueAtualCache');
+      return cache ? JSON.parse(cache) : [];
+    }
+  }
+
   // BUSCAR SOBRAS DA VIEW relatorio_vendas_excedentes
   async buscarSobras(periodo: 'diario' | 'mensal' | 'anual' | 'personalizado', dataInicio?: Date, dataFim?: Date): Promise<any[]> {
     try {
@@ -520,7 +550,7 @@ class SupabaseService {
           break;
       }
 
-      // Ordenar por data mais recente primeiro
+      // Ordenar por data mais recente primeira
       query = query.order('data', { ascending: false });
 
       const { data, error } = await query;

@@ -17,20 +17,48 @@ export function notifyError(error: any, context: string) {
       message.includes("fetch") ||
       message.includes("NetworkError") ||
       message.includes("Failed to fetch")) {
-    toast.error("Sem conexão. Salvamos offline, vamos sincronizar depois.");
+    toast.error("Sem conexão. Mostrando última atualização.");
     return;
   }
   
   // Verificar se é erro de sync/Supabase
   if (message.includes("sync") || 
       message.includes("supabase") || 
-      message.includes("database")) {
-    toast.error("Erro de sincronização. Dados salvos localmente.");
+      message.includes("database") ||
+      message.includes("PostgrestError")) {
+    toast.error("Não foi possível carregar agora. Tente novamente.");
     return;
   }
   
-  // Erro genérico com contexto
-  toast.error(`Erro em ${context}: ${message}`);
+  // Verificar se é erro de view inexistente
+  if (message.includes("does not exist") || 
+      message.includes("relation") ||
+      message.includes("table")) {
+    toast.error("Funcionalidade indisponível. Verifique a configuração do banco.");
+    return;
+  }
+  
+  // Erro genérico com contexto mais amigável
+  const friendlyContext = getFriendlyContext(context);
+  toast.error(`Erro ao ${friendlyContext}. Tente novamente.`);
+}
+
+/**
+ * Converte contexto técnico em mensagem amigável
+ */
+function getFriendlyContext(context: string): string {
+  const contextMap: Record<string, string> = {
+    'carregar estoque': 'carregar estoque',
+    'buscar sobras': 'buscar sobras',
+    'carregar relatórios': 'carregar relatórios',
+    'salvar comanda': 'salvar comanda',
+    'imprimir': 'imprimir',
+    'sincronizar': 'sincronizar dados',
+    'login': 'fazer login',
+    'cadastrar': 'cadastrar'
+  };
+  
+  return contextMap[context] || context;
 }
 
 /**

@@ -1,7 +1,7 @@
 /**
  * Sistema de logging padronizado
  * - debug: apenas em desenvolvimento
- * - info: sempre visível
+ * - info: sempre visível  
  * - error: sempre visível
  */
 export const logger = {
@@ -12,7 +12,9 @@ export const logger = {
   },
   
   info: (...args: any[]) => {
-    console.log(...args);
+    if (process.env.NODE_ENV === "development") {
+      console.log(...args);
+    }
   },
   
   error: (...args: any[]) => {

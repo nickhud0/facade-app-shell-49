@@ -6,39 +6,28 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState, useEffect } from "react";
-import { useEstoque } from "@/hooks/useEstoque";
+import { useEstoqueSupabase } from "@/hooks/useEstoqueSupabase";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { formatLastUpdate } from "@/utils/syncStatus";
-import { networkService } from "@/services/networkService";
+import { formatCurrency, formatWeight } from "@/utils/formatters";
+import { ResumoSkeleton, TableSkeleton } from "@/components/ui/skeleton";
 
 const Estoque = () => {
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
   const [categoriaFiltro, setCategoriaFiltro] = useState("Todos");
-  const [isOnline, setIsOnline] = useState(networkService.getConnectionStatus());
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState<string>();
-  const { itensEstoque, resumoEstoque, refreshData, hasData } = useEstoque();
+  const { itensEstoque, resumoEstoque, refreshData, hasData, loading, isOnline } = useEstoqueSupabase();
 
   // Atualizar dados quando a página for carregada
   useEffect(() => {
     refreshData();
-    
-    // Monitorar status da rede
-    const handleNetworkChange = (status: any) => {
-      setIsOnline(status.connected);
-    };
-    
-    networkService.addStatusListener(handleNetworkChange);
     
     // Verificar última atualização do localStorage
     const lastUpdate = localStorage.getItem('estoque_last_update');
     if (lastUpdate) {
       setUltimaAtualizacao(lastUpdate);
     }
-    
-    return () => {
-      networkService.removeStatusListener(handleNetworkChange);
-    };
   }, [refreshData]);
 
   // Obter categorias únicas (dados fictícios para demo)
@@ -98,12 +87,20 @@ const Estoque = () => {
     }
   ];
 
-  // Filtrar itens
-  const itensFiltrados = itensFicticios.filter(item => {
+  // Filtrar itens (usar dados reais se disponíveis, senão dados fictícios)
+  const dadosParaExibir = hasData ? itensEstoque : itensFicticios;
+  const itensFiltrados = dadosParaExibir.filter(item => {
     const matchBusca = item.material_nome.toLowerCase().includes(busca.toLowerCase());
     const matchCategoria = categoriaFiltro === "Todos" || item.categoria === categoriaFiltro;
     return matchBusca && matchCategoria;
   });
+
+  // Usar resumo real se disponível, senão calcular dos dados fictícios
+  const resumoFinal = hasData ? resumoEstoque : {
+    totalKg: itensFicticios.reduce((acc, item) => acc + item.kg_disponivel, 0),
+    totalTipos: itensFicticios.length,
+    valorTotal: itensFicticios.reduce((acc, item) => acc + item.valor_total_estoque, 0)
+  };
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -120,8 +117,9 @@ const Estoque = () => {
             variant="outline" 
             size="sm"
             onClick={refreshData}
+            disabled={loading}
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
           <NetworkStatus />
@@ -139,22 +137,26 @@ const Estoque = () => {
       )}
 
       {/* Resumo */}
-      <Card className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-accent/10">
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-2xl font-bold text-primary">259.0 kg</p>
-            <p className="text-sm text-muted-foreground">Total em Kg</p>
+      {loading ? (
+        <ResumoSkeleton />
+      ) : (
+        <Card className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-accent/10">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-2xl font-bold text-primary">{formatWeight(resumoFinal.totalKg).replace(' kg', '')} kg</p>
+              <p className="text-sm text-muted-foreground">Total em Kg</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-accent">{resumoFinal.totalTipos}</p>
+              <p className="text-sm text-muted-foreground">Tipos de Materiais</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-success">{formatCurrency(resumoFinal.valorTotal)}</p>
+              <p className="text-sm text-muted-foreground">Valor Total</p>
+            </div>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-accent">5</p>
-            <p className="text-sm text-muted-foreground">Tipos de Materiais</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-success">R$ 2.245,10</p>
-            <p className="text-sm text-muted-foreground">Valor Total</p>
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* Busca e Filtros */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -187,47 +189,55 @@ const Estoque = () => {
 
       {/* Tabela de Materiais */}
       <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Material</TableHead>
-              <TableHead className="text-center">Kg Disponível</TableHead>
-              <TableHead className="text-center">Preço Médio</TableHead>
-              <TableHead className="text-right">Valor Total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {itensFiltrados.map((item) => (
-              <TableRow key={item.material_id}>
-                <TableCell className="font-medium">
-                  <div>
-                    <p className="font-semibold">{item.material_nome}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.categoria}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Comprado: {item.kg_comprado.toFixed(1)}kg • Vendido: {item.kg_vendido.toFixed(1)}kg
-                    </p>
-                  </div>
-                </TableCell>
-                <TableCell className="text-center font-semibold">
-                  {Math.max(0, item.kg_disponivel).toFixed(1)} kg
-                </TableCell>
-                <TableCell className="text-center font-semibold text-primary">
-                  R$ {item.valor_medio_compra.toFixed(2)}/kg
-                </TableCell>
-                <TableCell className="text-right font-semibold text-success">
-                  R$ {Math.max(0, item.valor_total_estoque).toFixed(2)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        
-        {itensFiltrados.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            Nenhum material encontrado com os filtros aplicados
-          </div>
+        {loading ? (
+          <TableSkeleton rows={5} />
+        ) : (
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Material</TableHead>
+                  <TableHead className="text-center">Kg Disponível</TableHead>
+                  <TableHead className="text-center">Preço Médio</TableHead>
+                  <TableHead className="text-right">Valor Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {itensFiltrados.map((item) => (
+                  <TableRow key={item.material_id}>
+                    <TableCell className="font-medium">
+                      <div>
+                        <p className="font-semibold">{item.material_nome}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.categoria}
+                        </p>
+                        {(item as any).kg_comprado && (item as any).kg_vendido && (
+                          <p className="text-xs text-muted-foreground">
+                            Comprado: {formatWeight((item as any).kg_comprado)} • Vendido: {formatWeight((item as any).kg_vendido)}
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center font-semibold">
+                      {formatWeight(Math.max(0, item.kg_disponivel))}
+                    </TableCell>
+                    <TableCell className="text-center font-semibold text-primary">
+                      {formatCurrency(item.valor_medio_compra)}/kg
+                    </TableCell>
+                    <TableCell className="text-right font-semibold text-success">
+                      {formatCurrency(Math.max(0, item.valor_total_estoque))}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            
+            {itensFiltrados.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                {hasData ? 'Nenhum material encontrado com os filtros aplicados' : 'Carregando dados do estoque...'}
+              </div>
+            )}
+          </>
         )}
       </Card>
     </div>
