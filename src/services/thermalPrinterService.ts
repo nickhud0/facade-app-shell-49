@@ -43,7 +43,21 @@ class ThermalPrinterService {
   private CUT = '\x1D\x56\x00'; // Cortar papel
   private LINE_FEED = '\x0A'; // Nova linha
 
+  async ensurePermissions(): Promise<void> {
+    if (!(window as any).Capacitor?.isNativePlatform?.()) return;
+    const printer = (window as any).BluetoothPrinter;
+    try {
+      if (printer?.requestPermissions) {
+        await printer.requestPermissions();
+      }
+    } catch (e) {
+      console.warn("Falha ao solicitar permissões Bluetooth:", e);
+    }
+  }
+
   async connectPrinter(address?: string): Promise<boolean> {
+    await this.ensurePermissions();
+    
     if (!Capacitor.isNativePlatform()) {
       console.warn('Impressão térmica só funciona em dispositivos nativos');
       return false;
@@ -274,6 +288,8 @@ class ThermalPrinterService {
   }
 
   async listPrinters(): Promise<any[]> {
+    await this.ensurePermissions();
+    
     const printer = BluetoothPrinter || window.BluetoothPrinter;
     if (!printer) {
       throw new Error('Plugin de impressora Bluetooth não disponível');
