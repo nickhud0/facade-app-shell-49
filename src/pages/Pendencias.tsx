@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { getSyncIcon, getSyncTooltip, getSyncIconColor } from "@/utils/syncStatus";
 
+import { formatCurrency } from "@/utils/formatters";
+
 // Dados mock para pendências
 const pendenciasIniciais = [
   {
@@ -175,7 +177,7 @@ const Pendencias = () => {
             <p className="text-sm text-muted-foreground">Total Pendente</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-destructive">R$ {resumoPendencias.valorTotal.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-destructive">{formatCurrency(resumoPendencias.valorTotal)}</p>
             <p className="text-sm text-muted-foreground">Valor Pendente</p>
           </div>
         </div>
@@ -309,9 +311,9 @@ const Pendencias = () => {
               </div>
 
               <div className="text-right">
-                <p className="font-bold text-lg text-primary">
-                  R$ {pendencia.valor.toFixed(2)}
-                </p>
+                 <p className="font-bold text-lg text-primary">
+                   {formatCurrency(pendencia.valor)}
+                 </p>
               </div>
             </div>
 
@@ -337,10 +339,10 @@ const Pendencias = () => {
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Confirmar Pagamento</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Tem certeza que deseja marcar como paga a pendência de R$ {pendencia.valor.toFixed(2)} de {pendencia.cliente}?
-                        Esta ação não pode ser desfeita.
-                      </AlertDialogDescription>
+                       <AlertDialogDescription>
+                         Tem certeza que deseja marcar como paga a pendência de {formatCurrency(pendencia.valor)} de {pendencia.cliente}?
+                         Esta ação não pode ser desfeita.
+                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>

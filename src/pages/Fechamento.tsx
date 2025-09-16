@@ -40,6 +40,8 @@ const historicoFechamentos = [
   }
 ];
 
+import { formatCurrency } from "@/utils/formatters";
+
 const Fechamento = () => {
   const navigate = useNavigate();
   const [observacoes, setObservacoes] = useState("");
@@ -76,32 +78,32 @@ const Fechamento = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center p-3 rounded-lg bg-success/10">
                 <span className="font-medium">Receitas (Vendas)</span>
-                <span className="font-bold text-lg text-success">
-                  R$ {dadosAtual.receitas.toFixed(2)}
-                </span>
+                 <span className="font-bold text-lg text-success">
+                   {formatCurrency(dadosAtual.receitas)}
+                 </span>
               </div>
               
               <div className="flex justify-between items-center p-3 rounded-lg bg-destructive/10">
                 <span className="font-medium">Compras</span>
-                <span className="font-bold text-lg text-destructive">
-                  R$ {dadosAtual.compras.toFixed(2)}
-                </span>
+                 <span className="font-bold text-lg text-destructive">
+                   {formatCurrency(dadosAtual.compras)}
+                 </span>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="flex justify-between items-center p-3 rounded-lg bg-destructive/10">
                 <span className="font-medium">Despesas</span>
-                <span className="font-bold text-lg text-destructive">
-                  R$ {dadosAtual.despesas.toFixed(2)}
-                </span>
+                 <span className="font-bold text-lg text-destructive">
+                   {formatCurrency(dadosAtual.despesas)}
+                 </span>
               </div>
 
               <div className="flex justify-between items-center p-3 rounded-lg bg-primary/10">
                 <span className="font-medium">Lucro Atual</span>
-                <span className="font-bold text-lg text-primary">
-                  R$ {dadosAtual.lucroAtual.toFixed(2)}
-                </span>
+                 <span className="font-bold text-lg text-primary">
+                   {formatCurrency(dadosAtual.lucroAtual)}
+                 </span>
               </div>
             </div>
           </div>
@@ -147,14 +149,14 @@ const Fechamento = () => {
                   <div className="flex justify-between items-center w-full mr-4">
                     <div className="flex flex-col items-start">
                       <span className="font-medium text-base">{fechamento.data}</span>
-                      <span className="text-sm text-muted-foreground">
-                        Lucro: R$ {fechamento.lucro.toFixed(2)}
-                      </span>
+                       <span className="text-sm text-muted-foreground">
+                         Lucro: {formatCurrency(fechamento.lucro)}
+                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="text-sm text-success font-medium">
-                        R$ {fechamento.receitas.toFixed(2)}
-                      </span>
+                       <span className="text-sm text-success font-medium">
+                         {formatCurrency(fechamento.receitas)}
+                       </span>
                     </div>
                   </div>
                 </AccordionTrigger>
@@ -164,29 +166,29 @@ const Fechamento = () => {
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Receitas:</span>
-                          <span className="text-sm font-medium text-success">
-                            R$ {fechamento.receitas.toFixed(2)}
-                          </span>
+                           <span className="text-sm font-medium text-success">
+                             {formatCurrency(fechamento.receitas)}
+                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Compras:</span>
-                          <span className="text-sm font-medium text-destructive">
-                            R$ {fechamento.compras.toFixed(2)}
-                          </span>
+                           <span className="text-sm font-medium text-destructive">
+                             {formatCurrency(fechamento.compras)}
+                           </span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Despesas:</span>
-                          <span className="text-sm font-medium text-destructive">
-                            R$ {fechamento.despesas.toFixed(2)}
-                          </span>
+                           <span className="text-sm font-medium text-destructive">
+                             {formatCurrency(fechamento.despesas)}
+                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Lucro:</span>
-                          <span className="text-sm font-semibold text-primary">
-                            R$ {fechamento.lucro.toFixed(2)}
-                          </span>
+                           <span className="text-sm font-semibold text-primary">
+                             {formatCurrency(fechamento.lucro)}
+                           </span>
                         </div>
                       </div>
                     </div>

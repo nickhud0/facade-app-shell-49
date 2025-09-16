@@ -56,6 +56,8 @@ const resumoVales = {
   quantidadePendentes: vales.filter(v => v.status === 'Pendente').length
 };
 
+import { formatCurrency } from "@/utils/formatters";
+
 const Vale = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -80,7 +82,7 @@ const Vale = () => {
     // Aqui você pode adicionar a lógica para salvar o vale
     toast({
       title: "Vale cadastrado",
-      description: `Vale de R$ ${parseFloat(valor).toFixed(2)} para ${cliente} foi registrado`,
+      description: `Vale de ${formatCurrency(parseFloat(valor))} para ${cliente} foi registrado`,
     });
 
     // Reset form
@@ -104,7 +106,7 @@ const Vale = () => {
         <h2 className="text-lg font-semibold text-foreground mb-4">Resumo dos Vales</h2>
         <div className="grid grid-cols-2 gap-4 text-center">
           <div>
-            <p className="text-2xl font-bold text-warning">R$ {resumoVales.totalPendente.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-warning">{formatCurrency(resumoVales.totalPendente)}</p>
             <p className="text-sm text-muted-foreground">Total Pendente</p>
           </div>
           <div>
@@ -272,7 +274,7 @@ const Vale = () => {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Confirmar Quitação</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Tem certeza que deseja quitar o vale de R$ {vale.valor.toFixed(2)} do cliente {vale.cliente}?
+                          Tem certeza que deseja quitar o vale de {formatCurrency(vale.valor)} do cliente {vale.cliente}?
                           Esta ação não pode ser desfeita.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
@@ -281,7 +283,7 @@ const Vale = () => {
                         <AlertDialogAction onClick={() => {
                           toast({
                             title: "Vale quitado",
-                            description: `Vale de R$ ${vale.valor.toFixed(2)} de ${vale.cliente} foi quitado com sucesso`,
+                            description: `Vale de ${formatCurrency(vale.valor)} de ${vale.cliente} foi quitado com sucesso`,
                           });
                         }}>
                           Confirmar
@@ -293,7 +295,7 @@ const Vale = () => {
                 
                 <div className="text-right">
                   <p className="font-bold text-lg text-foreground">
-                    R$ {vale.valor.toFixed(2)}
+                    {formatCurrency(vale.valor)}
                   </p>
                   <span className={`text-xs px-2 py-1 rounded-full ${
                     vale.status === 'Quitado' 

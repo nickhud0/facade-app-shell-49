@@ -55,6 +55,24 @@ class ThermalPrinterService {
     }
   }
 
+  // Configurar codepage da impressora para caracteres especiais
+  private async setCodepage(printer: any): Promise<boolean> {
+    const codepages = [0x13, 0x02, 0x00]; // PC860 (Portugal/Brasil), PC850, PC437
+    
+    for (const cp of codepages) {
+      try {
+        await printer.write('\x1B\x74' + String.fromCharCode(cp));
+        console.log(`Codepage ${cp === 0x13 ? 'PC860' : cp === 0x02 ? 'PC850' : 'PC437'} configurado`);
+        return true;
+      } catch (error) {
+        console.warn(`Falha ao configurar codepage ${cp}:`, error);
+      }
+    }
+    
+    console.warn('Nenhum codepage configurado com sucesso');
+    return false;
+  }
+
   async connectPrinter(address?: string): Promise<boolean> {
     await this.ensurePermissions();
     
@@ -74,6 +92,7 @@ class ThermalPrinterService {
         const success = await printer.connect(address);
         if (success) {
           this.connected = true;
+          await this.setCodepage(printer);
           // Store connected device info
           const savedDevice = localStorage.getItem('thermal_printer_device');
           if (savedDevice) {
@@ -92,6 +111,7 @@ class ThermalPrinterService {
         if (success) {
           this.connected = true;
           this.connectedDevice = device;
+          await this.setCodepage(printer);
           return true;
         }
       }
@@ -110,6 +130,7 @@ class ThermalPrinterService {
       if (success) {
         this.connected = true;
         this.connectedDevice = device;
+        await this.setCodepage(printer);
         // Save device for future connections
         localStorage.setItem('thermal_printer_device', JSON.stringify(device));
         return true;
@@ -174,10 +195,10 @@ class ThermalPrinterService {
 
   // Formatar preço brasileiro
   private formatPrice(value: number): string {
-    return value.toLocaleString('pt-BR', {
+    return new Intl.NumberFormat('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    });
+    }).format(value);
   }
 
   async printComanda(comanda: ComandaParaPDF): Promise<boolean> {

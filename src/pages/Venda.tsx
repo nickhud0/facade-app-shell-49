@@ -13,6 +13,8 @@ import { Transacao, Material } from "@/services/database";
 import { useToast } from "@/hooks/use-toast";
 import { NetworkStatus } from "@/components/NetworkStatus";
 
+import { formatCurrency } from "@/utils/formatters";
+
 const Venda = () => {
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [peso, setPeso] = useState("");
@@ -190,7 +192,7 @@ const Venda = () => {
                       {material.categoria || "Outros"}
                     </p>
                     <p className="font-bold text-success text-sm">
-                      R$ {material.preco_venda_kg.toFixed(2)}/kg
+                      {formatCurrency(material.preco_venda_kg)}/kg
                     </p>
                   </div>
                 </div>
@@ -212,7 +214,7 @@ const Venda = () => {
               <div className="p-3 bg-muted rounded-lg">
                 <h3 className="font-semibold">{selectedMaterial.nome}</h3>
                 <p className="text-sm text-muted-foreground">{selectedMaterial.categoria || "Outros"}</p>
-                <p className="text-sm font-medium">R$ {selectedMaterial.preco_venda_kg.toFixed(2)}/kg</p>
+                <p className="text-sm font-medium">{formatCurrency(selectedMaterial.preco_venda_kg)}/kg</p>
               </div>
 
               <div className="space-y-3">
@@ -259,7 +261,7 @@ const Venda = () => {
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Subtotal:</span>
                     <span className="text-lg font-bold text-success">
-                      R$ {calcularSubtotal().toFixed(2)}
+                      {formatCurrency(calcularSubtotal())}
                     </span>
                   </div>
                 </div>

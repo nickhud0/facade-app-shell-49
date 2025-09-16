@@ -16,6 +16,8 @@ import { formatarCodigoComanda } from "@/utils/comandaCode";
 import PrinterManager from "@/components/PrinterManager";
 import { shareComandaWhatsApp } from "@/services/shareWhatsApp";
 
+import { formatCurrency } from "@/utils/formatters";
+
 // Função para agrupar materiais iguais
 const agruparMateriais = (itens: any[]) => {
   const materiaisAgrupados = new Map();
@@ -319,10 +321,10 @@ const ImprimirComanda = () => {
               <div className="flex justify-between">
                 <span>{item.produto}</span>
               </div>
-              <div className="flex justify-between ml-2">
-                <span>{item.quantidade}x R$ {item.precoUnitario.toFixed(2)}</span>
-                <span className="font-bold">R$ {item.total.toFixed(2)}</span>
-              </div>
+               <div className="flex justify-between ml-2">
+                 <span>{item.quantidade}x {formatCurrency(item.precoUnitario)}</span>
+                 <span className="font-bold">{formatCurrency(item.total)}</span>
+               </div>
             </div>
           ))}
         </div>
@@ -331,10 +333,10 @@ const ImprimirComanda = () => {
 
         {/* Total */}
         <div className="space-y-1 text-sm">
-          <div className="flex justify-between font-bold text-base">
-            <span>TOTAL:</span>
-            <span>R$ {comanda.total.toFixed(2)}</span>
-          </div>
+           <div className="flex justify-between font-bold text-base">
+             <span>TOTAL:</span>
+             <span>{formatCurrency(comanda.total)}</span>
+           </div>
         </div>
 
         <Separator className="my-4 border-dashed border-black" />

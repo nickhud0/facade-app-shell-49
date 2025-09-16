@@ -16,6 +16,8 @@ interface Despesa {
   created_at: string;
 }
 
+import { formatCurrency } from "@/utils/formatters";
+
 const CadastrarDespesa = () => {
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
@@ -148,7 +150,7 @@ const CadastrarDespesa = () => {
             {despesasDoMes.map((despesa) => (
               <div key={despesa.id} className="grid grid-cols-3 gap-4 p-3 bg-muted/20 rounded-lg">
                 <span className="font-medium text-foreground">{despesa.descricao}</span>
-                <span className="font-bold text-destructive">R$ {despesa.valor.toFixed(2)}</span>
+                <span className="font-bold text-destructive">{formatCurrency(despesa.valor)}</span>
                 <span className="text-sm text-muted-foreground">
                   {format(new Date(despesa.created_at), "dd/MM/yyyy")}
                 </span>
@@ -160,7 +162,7 @@ const CadastrarDespesa = () => {
               <div className="flex justify-between items-center p-3 bg-destructive/10 rounded-lg">
                 <span className="font-semibold text-foreground">Total do Mês:</span>
                 <span className="font-bold text-lg text-destructive">
-                  R$ {despesasDoMes.reduce((acc, despesa) => acc + despesa.valor, 0).toFixed(2)}
+                  {formatCurrency(despesasDoMes.reduce((acc, despesa) => acc + despesa.valor, 0))}
                 </span>
               </div>
             </div>

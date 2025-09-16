@@ -64,19 +64,19 @@ const Relatorios = () => {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
       <Card className="p-3 text-center bg-warning-light">
         <p className="text-xs font-medium text-muted-foreground mb-1">Total Compras</p>
-        <p className="text-lg md:text-xl font-semibold text-black">R$ {dados.totalCompras.toFixed(2)}</p>
+        <p className="text-lg md:text-xl font-semibold text-black">{formatCurrency(dados.totalCompras)}</p>
       </Card>
       <Card className="p-3 text-center bg-success-light">
         <p className="text-xs font-medium text-muted-foreground mb-1">Total Vendas</p>
-        <p className="text-lg md:text-xl font-semibold text-black">R$ {dados.totalVendas.toFixed(2)}</p>
+        <p className="text-lg md:text-xl font-semibold text-black">{formatCurrency(dados.totalVendas)}</p>
       </Card>
       <Card className="p-3 text-center bg-destructive-light">
         <p className="text-xs font-medium text-muted-foreground mb-1">Total Despesas</p>
-        <p className="text-lg md:text-xl font-semibold text-black">R$ {dados.totalDespesas.toFixed(2)}</p>
+        <p className="text-lg md:text-xl font-semibold text-black">{formatCurrency(dados.totalDespesas)}</p>
       </Card>
       <Card className="p-3 text-center bg-success-light">
         <p className="text-xs font-medium text-muted-foreground mb-1">Lucro</p>
-        <p className="text-lg md:text-xl font-semibold text-black">R$ {dados.lucro.toFixed(2)}</p>
+        <p className="text-lg md:text-xl font-semibold text-black">{formatCurrency(dados.lucro)}</p>
       </Card>
     </div>
      );
@@ -98,8 +98,8 @@ const Relatorios = () => {
             {dados.comprasPorMaterial.map((item, index) => (
               <TableRow key={index}>
                 <TableCell>{item.material}</TableCell>
-                <TableCell className="text-center font-semibold">{item.kg.toFixed(1)}</TableCell>
-                <TableCell className="text-right font-semibold text-success">{item.valor.toFixed(2)}</TableCell>
+                 <TableCell className="text-center font-semibold">{formatWeight(item.kg).replace(' kg', '')}</TableCell>
+                <TableCell className="text-right font-semibold text-success">{formatCurrency(item.valor)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -120,8 +120,8 @@ const Relatorios = () => {
             {dados.vendasPorMaterial.map((item, index) => (
               <TableRow key={index}>
                 <TableCell>{item.material}</TableCell>
-                <TableCell className="text-center font-semibold">{item.kg.toFixed(1)}</TableCell>
-                <TableCell className="text-right font-semibold text-success">{item.valor.toFixed(2)}</TableCell>
+                 <TableCell className="text-center font-semibold">{formatWeight(item.kg).replace(' kg', '')}</TableCell>
+                <TableCell className="text-right font-semibold text-success">{formatCurrency(item.valor)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

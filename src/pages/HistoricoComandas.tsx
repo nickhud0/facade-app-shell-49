@@ -269,9 +269,9 @@ const HistoricoComandas = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-foreground text-sm">
-                      R$ {comanda.total.toFixed(2)}
-                    </p>
+                     <p className="font-bold text-foreground text-sm">
+                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(comanda.total)}
+                     </p>
                     <div className="flex items-center gap-1">
                       <span className="text-xs px-1 py-0.5 rounded-full bg-muted text-muted-foreground">
                         {comanda.tipo}
@@ -369,8 +369,8 @@ const HistoricoComandas = () => {
                           <TableRow key={index}>
                             <TableCell className="text-xs">{item.material || item.nome}</TableCell>
                             <TableCell className="text-xs text-center">{item.quantidade}</TableCell>
-                            <TableCell className="text-xs text-right">R$ {item.preco.toFixed(2)}</TableCell>
-                            <TableCell className="text-xs text-right">R$ {(item.quantidade * item.preco).toFixed(2)}</TableCell>
+                             <TableCell className="text-xs text-right">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.preco)}</TableCell>
+                             <TableCell className="text-xs text-right">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.quantidade * item.preco)}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -390,7 +390,7 @@ const HistoricoComandas = () => {
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">Total:</span>
-                    <span className="font-bold text-lg">R$ {comanda.total.toFixed(2)}</span>
+                    <span className="font-bold text-lg">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(comanda.total)}</span>
                   </div>
                 </div>
                 
@@ -426,18 +426,18 @@ const HistoricoComandas = () => {
             <p className="text-sm text-muted-foreground">Comandas</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-success">
-              R$ {comandasExibidas.reduce((acc, c) => acc + c.total, 0).toFixed(2)}
-            </p>
+             <p className="text-2xl font-bold text-success">
+               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(comandasExibidas.reduce((acc, c) => acc + c.total, 0))}
+             </p>
             <p className="text-sm text-muted-foreground">Total</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-accent">
-              R$ {comandasExibidas.length > 0 
-                ? (comandasExibidas.reduce((acc, c) => acc + c.total, 0) / comandasExibidas.length).toFixed(2)
-                : '0,00'
-              }
-            </p>
+             <p className="text-2xl font-bold text-accent">
+               {comandasExibidas.length > 0 
+                 ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(comandasExibidas.reduce((acc, c) => acc + c.total, 0) / comandasExibidas.length)
+                 : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(0)
+               }
+             </p>
             <p className="text-sm text-muted-foreground">Ticket Médio</p>
           </div>
         </div>
