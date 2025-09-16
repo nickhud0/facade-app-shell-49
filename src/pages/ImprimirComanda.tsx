@@ -11,6 +11,7 @@ import { Comanda } from "@/services/database";
 import { toast } from "sonner";
 import { formatarCodigoComanda } from "@/utils/comandaCode";
 import PrinterManager from "@/components/PrinterManager";
+import { shareComandaWhatsApp } from "@/services/shareWhatsApp";
 
 // Função para agrupar materiais iguais
 const agruparMateriais = (itens: any[]) => {
@@ -161,28 +162,52 @@ const ImprimirComanda = () => {
     }
   };
 
-  const handleWhatsAppShare = () => {
+  const handleWhatsAppShare = async () => {
     if (!comanda) {
       toast.error('Nenhuma comanda para compartilhar');
       return;
     }
 
-    const message = `*Comanda ${comanda.numero}*\n` +
-      `Data: ${comanda.data} - ${comanda.horario}\n` +
-      `Tipo: ${comanda.tipo.toUpperCase()}\n\n` +
-      `*Itens:*\n` +
-      comanda.itens.map(item => 
-        `${item.produto}\n${item.quantidade}x R$ ${item.precoUnitario.toFixed(2)} = R$ ${item.total.toFixed(2)}`
-      ).join('\n\n') +
-      `\n\n*TOTAL: R$ ${comanda.total.toFixed(2)}*\n\n` +
-      `_Reciclagem Pereque_\n` +
-      `Ubatuba, Pereque Mirim, Av Marginal, 2504\n` +
-      `12 99162-0321`;
+    try {
+      toast.loading('Gerando PDF para compartilhar...', { id: 'whatsapp-share' });
 
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
-    
-    window.open(whatsappUrl, '_blank');
+      // Gera PDF usando a função já existente no app
+      const pdf = pdfService.generateComandaPDF(comanda);
+      const pdfBlob = pdf.output('blob');
+      
+      // Cria arquivo temporário para compartilhar
+      const pdfFile = new File([pdfBlob], `comanda-${comanda.numero}.pdf`, { type: 'application/pdf' });
+      const pdfUrl = URL.createObjectURL(pdfFile);
+
+      // Mensagem com código da comanda
+      const codigo = formatarCodigoComanda(comanda) || comanda.numero || 'SemCódigo';
+
+      // Chama serviço para abrir WhatsApp
+      await shareComandaWhatsApp(pdfUrl, `Olá, segue sua comanda: ${codigo}`);
+      
+      toast.success('Compartilhamento iniciado!', { id: 'whatsapp-share' });
+    } catch (error) {
+      console.error('Erro ao gerar ou compartilhar PDF:', error);
+      toast.error('Erro ao compartilhar no WhatsApp', { id: 'whatsapp-share' });
+      
+      // Fallback para método anterior se houver erro
+      const message = `*Comanda ${comanda.numero}*\n` +
+        `Data: ${comanda.data} - ${comanda.horario}\n` +
+        `Tipo: ${comanda.tipo.toUpperCase()}\n\n` +
+        `*Itens:*\n` +
+        comanda.itens.map(item => 
+          `${item.produto}\n${item.quantidade}x R$ ${item.precoUnitario.toFixed(2)} = R$ ${item.total.toFixed(2)}`
+        ).join('\n\n') +
+        `\n\n*TOTAL: R$ ${comanda.total.toFixed(2)}*\n\n` +
+        `_Reciclagem Pereque_\n` +
+        `Ubatuba, Pereque Mirim, Av Marginal, 2504\n` +
+        `12 99162-0321`;
+
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+      
+      window.open(whatsappUrl, '_blank');
+    }
   };
 
   const handlePrint = async () => {
