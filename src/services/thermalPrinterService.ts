@@ -1,6 +1,18 @@
 import { Capacitor } from '@capacitor/core';
 import { ComandaParaPDF } from './print/pdfService';
 
+// Import the Bluetooth plugin
+let BluetoothPrinter: any = null;
+
+if (Capacitor.isNativePlatform()) {
+  try {
+    // Dynamic import for Capacitor plugin
+    BluetoothPrinter = (window as any).BluetoothPrinter || require('capacitor-bluetooth-printer');
+  } catch (error) {
+    console.warn('Capacitor Bluetooth Printer plugin not available');
+  }
+}
+
 declare global {
   interface Window {
     BluetoothPrinter?: {
@@ -31,32 +43,61 @@ class ThermalPrinterService {
   private CUT = '\x1D\x56\x00'; // Cortar papel
   private LINE_FEED = '\x0A'; // Nova linha
 
-  async connectPrinter(): Promise<boolean> {
+  async connectPrinter(address?: string): Promise<boolean> {
     if (!Capacitor.isNativePlatform()) {
       console.warn('Impressão térmica só funciona em dispositivos nativos');
       return false;
     }
 
     try {
-      if (!window.BluetoothPrinter) {
+      const printer = BluetoothPrinter || window.BluetoothPrinter;
+      if (!printer) {
         throw new Error('Plugin de impressora Bluetooth não disponível');
       }
 
-      // Listar dispositivos Bluetooth disponíveis
-      const devices = await window.BluetoothPrinter.list();
+      // If specific address provided, connect to it
+      if (address) {
+        const success = await printer.connect(address);
+        if (success) {
+          this.connected = true;
+          // Store connected device info
+          const savedDevice = localStorage.getItem('thermal_printer_device');
+          if (savedDevice) {
+            this.connectedDevice = JSON.parse(savedDevice);
+          }
+          return true;
+        }
+        return false;
+      }
+
+      // Otherwise, try to connect to saved device
+      const savedDevice = localStorage.getItem('thermal_printer_device');
+      if (savedDevice) {
+        const device = JSON.parse(savedDevice);
+        const success = await printer.connect(device.address);
+        if (success) {
+          this.connected = true;
+          this.connectedDevice = device;
+          return true;
+        }
+      }
+
+      // List devices if no saved device or connection failed
+      const devices = await printer.list();
       
       if (devices.length === 0) {
         throw new Error('Nenhuma impressora Bluetooth encontrada');
       }
 
-      // Tentar conectar com a primeira impressora disponível
-      // Em uma implementação real, você pode mostrar uma lista para o usuário escolher
+      // Try to connect to first available device as fallback
       const device = devices[0];
-      const success = await window.BluetoothPrinter.connect(device.address);
+      const success = await printer.connect(device.address);
       
       if (success) {
         this.connected = true;
         this.connectedDevice = device;
+        // Save device for future connections
+        localStorage.setItem('thermal_printer_device', JSON.stringify(device));
         return true;
       }
       
@@ -68,18 +109,27 @@ class ThermalPrinterService {
   }
 
   async isConnected(): Promise<boolean> {
-    if (!window.BluetoothPrinter) return false;
+    const printer = BluetoothPrinter || window.BluetoothPrinter;
+    if (!printer) return false;
     
     try {
-      return await window.BluetoothPrinter.isConnected();
+      const connected = await printer.isConnected();
+      this.connected = connected;
+      return connected;
     } catch {
+      this.connected = false;
       return false;
     }
   }
 
   async disconnect(): Promise<void> {
-    if (window.BluetoothPrinter && this.connected) {
-      await window.BluetoothPrinter.disconnect();
+    const printer = BluetoothPrinter || window.BluetoothPrinter;
+    if (printer && this.connected) {
+      try {
+        await printer.disconnect();
+      } catch (error) {
+        console.warn('Erro ao desconectar:', error);
+      }
       this.connected = false;
       this.connectedDevice = null;
     }
@@ -209,11 +259,12 @@ class ThermalPrinterService {
       printData += this.CUT;
 
       // Enviar para impressora
-      if (!window.BluetoothPrinter) {
+      const printer = BluetoothPrinter || window.BluetoothPrinter;
+      if (!printer) {
         throw new Error('Plugin de impressora não disponível');
       }
 
-      const success = await window.BluetoothPrinter.print(printData);
+      const success = await printer.print(printData);
       return success;
 
     } catch (error) {
@@ -223,11 +274,17 @@ class ThermalPrinterService {
   }
 
   async listPrinters(): Promise<any[]> {
-    if (!window.BluetoothPrinter) {
+    const printer = BluetoothPrinter || window.BluetoothPrinter;
+    if (!printer) {
       throw new Error('Plugin de impressora Bluetooth não disponível');
     }
     
-    return await window.BluetoothPrinter.list();
+    try {
+      return await printer.list();
+    } catch (error) {
+      console.error('Erro ao listar impressoras:', error);
+      return [];
+    }
   }
 }
 

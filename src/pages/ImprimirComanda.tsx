@@ -1,4 +1,4 @@
-import { ArrowLeft, Download, Share, FileText, Printer } from "lucide-react";
+import { ArrowLeft, Download, Share, FileText, Printer, Settings } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { useComandasOffline } from "@/hooks/useComandasOffline";
 import { Comanda } from "@/services/database";
 import { toast } from "sonner";
 import { formatarCodigoComanda } from "@/utils/comandaCode";
+import PrinterManager from "@/components/PrinterManager";
 
 // Função para agrupar materiais iguais
 const agruparMateriais = (itens: any[]) => {
@@ -79,6 +80,12 @@ const ImprimirComanda = () => {
   
   const [comanda, setComanda] = useState<ComandaParaPDF | null>(comandaInicial);
   const [carregando, setCarregando] = useState(!comandaInicial);
+  const [showPrinterManager, setShowPrinterManager] = useState(false);
+  const [printerConnected, setPrinterConnected] = useState(false);
+
+  useEffect(() => {
+    checkPrinterConnection();
+  }, []);
 
   useEffect(() => {
     // Só busca do banco se não veio dados do state
@@ -128,6 +135,15 @@ const ImprimirComanda = () => {
     }
   }, [comandaId, comandasCache, buscarComandaPorNumero, comandaInicial]);
 
+  const checkPrinterConnection = async () => {
+    try {
+      const connected = await thermalPrinterService.isConnected();
+      setPrinterConnected(connected);
+    } catch {
+      setPrinterConnected(false);
+    }
+  };
+
   const handleDownloadPDF = async () => {
     try {
       if (!comanda) {
@@ -176,7 +192,16 @@ const ImprimirComanda = () => {
     }
 
     try {
-      toast.loading('Conectando à impressora...', { id: 'printer' });
+      // Check if printer is connected
+      const connected = await thermalPrinterService.isConnected();
+      
+      if (!connected) {
+        toast.error('Impressora não conectada. Configure primeiro.');
+        setShowPrinterManager(true);
+        return;
+      }
+
+      toast.loading('Imprimindo comanda...', { id: 'printer' });
       
       const success = await thermalPrinterService.printComanda(comanda);
       
@@ -187,8 +212,15 @@ const ImprimirComanda = () => {
       }
     } catch (error) {
       console.error('Erro ao imprimir:', error);
-      toast.error('Erro ao conectar com a impressora', { id: 'printer' });
+      toast.error('Erro ao conectar com a impressora. Verifique a conexão.', { id: 'printer' });
+      setShowPrinterManager(true);
     }
+  };
+
+  const handlePrinterConnected = () => {
+    setPrinterConnected(true);
+    setShowPrinterManager(false);
+    toast.success('Impressora conectada! Agora você pode imprimir.');
   };
 
   // Mostrar loading se ainda carregando
@@ -325,14 +357,26 @@ const ImprimirComanda = () => {
           Compartilhar WhatsApp
         </Button>
 
-        <Button 
-          variant="outline" 
-          className="w-full h-12"
-          onClick={handlePrint}
-        >
-          <Printer className="mr-2 h-5 w-5" />
-          Imprimir
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            className="flex-1 h-12"
+            onClick={handlePrint}
+          >
+            <Printer className="mr-2 h-5 w-5" />
+            Imprimir
+          </Button>
+          
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="h-12 px-3"
+            onClick={() => setShowPrinterManager(true)}
+            title="Configurar impressora"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
 
         <Button 
           className="w-full h-12 bg-gradient-to-r from-primary to-primary/90"
@@ -353,11 +397,19 @@ const ImprimirComanda = () => {
             </h3>
             <p className="text-sm text-muted-foreground">
               Status: {isOnline ? 'Online' : 'Offline'} • 
+              Impressora: {printerConnected ? 'Conectada' : 'Não conectada'} •
               Use as opções acima para baixar o PDF, compartilhar ou imprimir a comanda.
             </p>
           </div>
         </div>
       </Card>
+
+      {/* Printer Manager Dialog */}
+      <PrinterManager
+        open={showPrinterManager}
+        onOpenChange={setShowPrinterManager}
+        onPrinterConnected={handlePrinterConnected}
+      />
     </div>
   );
 };
