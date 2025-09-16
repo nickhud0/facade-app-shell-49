@@ -487,11 +487,13 @@ class SupabaseService {
 
   // BUSCAR SOBRAS DA VIEW relatorio_vendas_excedentes
   async buscarSobras(periodo: 'diario' | 'mensal' | 'anual' | 'personalizado', dataInicio?: Date, dataFim?: Date): Promise<any[]> {
-    if (!this.client || !this.isConnected) {
-      throw new Error('Supabase not connected');
-    }
-
     try {
+      // Se offline, usar cache
+      if (!this.client || !this.isConnected) {
+        const cache = localStorage.getItem('sobrasCache');
+        return cache ? JSON.parse(cache) : [];
+      }
+
       let query = this.client.from('relatorio_vendas_excedentes').select('*');
 
       // Aplica filtros de período
@@ -524,10 +526,18 @@ class SupabaseService {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data || [];
+
+      // Salva no cache offline
+      const result = data || [];
+      localStorage.setItem('sobrasCache', JSON.stringify(result));
+      
+      return result;
     } catch (error) {
       console.error('Erro ao buscar sobras:', error);
-      throw error;
+      
+      // Fallback para cache offline
+      const cache = localStorage.getItem('sobrasCache');
+      return cache ? JSON.parse(cache) : [];
     }
   }
 }

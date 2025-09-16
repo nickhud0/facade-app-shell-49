@@ -33,45 +33,15 @@ export const useSobras = () => {
     setLoading(true);
     
     try {
-      if (!isOnline) {
-        // Buscar dados do cache offline
-        const cachedData = localStorage.getItem(`sobras_${periodo}`);
-        if (cachedData) {
-          const parsed = JSON.parse(cachedData);
-          setSobras(parsed.data || []);
-          logger.debug('📦 Dados de sobras carregados do cache offline');
-        } else {
-          setSobras([]);
-          logger.debug('📦 Nenhum dado de sobras disponível offline');
-        }
-        return;
-      }
-
-      // Usar a nova função do supabaseService
+      // Usar a função do supabaseService que já trata online/offline
       const dados = await supabaseService.buscarSobras(periodo, dataInicio, dataFim);
       setSobras(dados);
       
-      // Salvar no cache para uso offline
-      const cacheData = {
-        data: dados,
-        timestamp: new Date().toISOString()
-      };
-      localStorage.setItem(`sobras_${periodo}`, JSON.stringify(cacheData));
-      
-      logger.debug(`📦 ${dados.length} sobras carregadas do Supabase`);
+      logger.debug(`📦 ${dados.length} sobras carregadas`);
       
     } catch (error) {
       notifyError(error, 'buscar sobras');
-      
-      // Fallback para cache offline em caso de erro
-      const cachedData = localStorage.getItem(`sobras_${periodo}`);
-      if (cachedData) {
-        const parsed = JSON.parse(cachedData);
-        setSobras(parsed.data || []);
-        logger.debug('📦 Usando cache offline devido ao erro');
-      } else {
-        setSobras([]);
-      }
+      setSobras([]);
     } finally {
       setLoading(false);
     }
