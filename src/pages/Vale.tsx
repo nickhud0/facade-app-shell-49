@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { getSyncIcon, getSyncTooltip, getSyncIconColor } from "@/utils/syncStatus";
+import { formatCurrency, formatDate } from "@/utils/formatters";
 
 // Dados mock para vales
 const vales = [
@@ -55,8 +56,6 @@ const resumoVales = {
   totalPendente: vales.filter(v => v.status === 'Pendente').reduce((acc, v) => acc + v.valor, 0),
   quantidadePendentes: vales.filter(v => v.status === 'Pendente').length
 };
-
-import { formatCurrency } from "@/utils/formatters";
 
 const Vale = () => {
   const navigate = useNavigate();
@@ -251,9 +250,9 @@ const Vale = () => {
                       );
                     })()}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Registrado em {vale.data}
-                  </p>
+                   <p className="text-sm text-muted-foreground">
+                     Registrado em {formatDate(vale.data)}
+                   </p>
                 </div>
               </div>
               

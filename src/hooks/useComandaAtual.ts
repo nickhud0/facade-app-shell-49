@@ -47,7 +47,7 @@ export function useComandaAtual(): UseComandaAtualReturn {
         return false;
       }
 
-      const now = new Date().toISOString();
+      const now = new Date();
       const numeroComanda = `CMD-${Date.now()}`;
       
       const novaComanda: Comanda = {
@@ -60,8 +60,8 @@ export function useComandaAtual(): UseComandaAtualReturn {
         dispositivo: 'Local',
         observacoes: undefined,
         itens: [],
-        created_at: now,
-        updated_at: now
+        created_at: now.toISOString(),
+        updated_at: now.toISOString()
       };
 
       // Salvar no cache local

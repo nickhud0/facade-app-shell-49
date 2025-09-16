@@ -4,6 +4,7 @@ import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
+import { toYMD } from '@/utils/formatters';
 
 export interface UseCompraVendaReturn {
   materiais: Material[];
@@ -56,7 +57,7 @@ export function useCompraVenda(): UseCompraVendaReturn {
         categoria: item.categoria_material,
         preco_compra_kg: item.preco_compra,
         preco_venda_kg: item.preco_venda,
-        created_at: new Date().toISOString(),
+        created_at: toYMD(new Date()),
         updated_at: new Date().toISOString()
       }));
 

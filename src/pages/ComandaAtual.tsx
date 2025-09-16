@@ -16,7 +16,7 @@ import { useComandasOffline } from "@/hooks/useComandasOffline";
 import { prefixoService } from "@/services/prefixoService";
 import { Transacao } from "@/services/database";
 import { useToast } from "@/hooks/use-toast";
-import { toYMD } from "@/utils/formatters";
+import { toYMD, formatDate } from "@/utils/formatters";
 
 import { formatCurrency } from "@/utils/formatters";
 
@@ -236,7 +236,7 @@ const ComandaAtual = () => {
               Nova Comanda
             </h2>
             <p className="text-sm text-muted-foreground">
-              {comandaState.tipo === "venda" ? "Venda" : "Compra"} • Iniciada às 14:35
+              {comandaState.tipo === "venda" ? "Venda" : "Compra"} • Iniciada às {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </p>
           </div>
           <div className="text-right">

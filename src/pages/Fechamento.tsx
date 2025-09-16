@@ -8,8 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useState } from "react";
 import { useFechamento } from "@/hooks/useFechamento";
 import { NetworkStatus } from "@/components/NetworkStatus";
-
-// Dados mock do histórico de fechamentos
+import { formatCurrency, formatDate } from "@/utils/formatters";
 const historicoFechamentos = [
   {
     id: 1,
@@ -40,8 +39,6 @@ const historicoFechamentos = [
   }
 ];
 
-import { formatCurrency } from "@/utils/formatters";
-
 const Fechamento = () => {
   const navigate = useNavigate();
   const [observacoes, setObservacoes] = useState("");
@@ -70,7 +67,7 @@ const Fechamento = () => {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-6">
-            Último fechamento: {dadosAtual.ultimoFechamento}
+            Último fechamento: {formatDate(dadosAtual.ultimoFechamento)}
           </p>
 
           {/* Valores Consolidados */}
@@ -147,12 +144,12 @@ const Fechamento = () => {
               >
                 <AccordionTrigger className="flex justify-between items-center py-4 hover:no-underline">
                   <div className="flex justify-between items-center w-full mr-4">
-                    <div className="flex flex-col items-start">
-                      <span className="font-medium text-base">{fechamento.data}</span>
-                       <span className="text-sm text-muted-foreground">
-                         Lucro: {formatCurrency(fechamento.lucro)}
-                       </span>
-                    </div>
+                     <div className="flex flex-col items-start">
+                       <span className="font-medium text-base">{formatDate(fechamento.data)}</span>
+                        <span className="text-sm text-muted-foreground">
+                          Lucro: {formatCurrency(fechamento.lucro)}
+                        </span>
+                     </div>
                     <div className="text-right">
                        <span className="text-sm text-success font-medium">
                          {formatCurrency(fechamento.receitas)}

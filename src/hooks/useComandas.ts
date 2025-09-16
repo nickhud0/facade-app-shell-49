@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useComandasOffline } from '@/hooks/useComandasOffline';
 import { Comanda as ComandaDB } from '@/services/database';
+import { toYMD } from '@/utils/formatters';
 
 export interface ItemComanda {
   id: number;
@@ -123,7 +124,7 @@ export const useComandas = () => {
         const comandaHistorico = {
           id: Date.now(),
           numero: codigoCompleto,
-          data: new Date().toISOString().split('T')[0],
+          data: toYMD(new Date()),
           horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
           total: comandaAtual.total,
           itens: comandaAtual.itens.length,

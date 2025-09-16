@@ -12,6 +12,7 @@ import { useOfflineData } from "@/hooks/useOfflineData";
 import { Transacao, Material } from "@/services/database";
 import { useToast } from "@/hooks/use-toast";
 import { NetworkStatus } from "@/components/NetworkStatus";
+import { toYMD } from "@/utils/formatters";
 
 import { formatCurrency } from "@/utils/formatters";
 
@@ -63,7 +64,7 @@ const Compra = () => {
       peso: pesoLiquido,
       valor_total: total,
       observacoes: desconto ? `Desconto: ${descontoKg}kg` : undefined,
-      created_at: new Date().toISOString()
+      created_at: toYMD(new Date())
     };
 
     // Salvar transação no banco offline

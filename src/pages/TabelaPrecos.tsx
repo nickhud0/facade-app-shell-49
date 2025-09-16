@@ -11,7 +11,7 @@ import { useOfflineData } from "@/hooks/useOfflineData";
 import { Material } from "@/services/database";
 import { useToast } from "@/hooks/use-toast";
 import { NetworkStatus } from "@/components/NetworkStatus";
-import { toYMD } from "@/utils/formatters";
+import { toYMD, formatCurrency, formatDate } from "@/utils/formatters";
 
 const TabelaPrecos = () => {
   const navigate = useNavigate();
@@ -216,13 +216,13 @@ const TabelaPrecos = () => {
                   <div className="text-center sm:text-left">
                     <p className="text-xs text-muted-foreground mb-1">Preço Compra</p>
                     <p className="text-lg font-bold text-primary whitespace-nowrap">
-                      R$ {material.preco_compra_kg.toFixed(2)}/kg
+                      {formatCurrency(material.preco_compra_kg)}/kg
                     </p>
                   </div>
                   <div className="text-center sm:text-left">
                     <p className="text-xs text-muted-foreground mb-1">Preço Venda</p>
                     <p className="text-lg font-bold text-success whitespace-nowrap">
-                      R$ {material.preco_venda_kg.toFixed(2)}/kg
+                      {formatCurrency(material.preco_venda_kg)}/kg
                     </p>
                   </div>
                 </div>
@@ -271,8 +271,8 @@ const TabelaPrecos = () => {
                 <h3 className="font-semibold">{selectedMaterial.nome}</h3>
                 <p className="text-sm text-muted-foreground">{selectedMaterial.categoria || "Outros"}</p>
                 <div className="text-sm text-muted-foreground space-y-1">
-                  <p>Preço compra: R$ {selectedMaterial.preco_compra_kg.toFixed(2)}/kg</p>
-                  <p>Preço venda atual: R$ {selectedMaterial.preco_venda_kg.toFixed(2)}/kg</p>
+                  <p>Preço compra: {formatCurrency(selectedMaterial.preco_compra_kg)}/kg</p>
+                  <p>Preço venda atual: {formatCurrency(selectedMaterial.preco_venda_kg)}/kg</p>
                 </div>
               </div>
 
@@ -310,13 +310,13 @@ const TabelaPrecos = () => {
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Novo Preço Compra:</span>
                       <span className="text-lg font-bold text-primary">
-                        R$ {parseFloat(novoPrecoCompra).toFixed(2)}/kg
+                        {formatCurrency(parseFloat(novoPrecoCompra))}/kg
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Novo Preço Venda:</span>
                       <span className="text-lg font-bold text-success">
-                        R$ {parseFloat(novoPrecoVenda).toFixed(2)}/kg
+                        {formatCurrency(parseFloat(novoPrecoVenda))}/kg
                       </span>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-border">

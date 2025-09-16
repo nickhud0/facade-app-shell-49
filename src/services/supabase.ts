@@ -331,7 +331,7 @@ class SupabaseService {
         valor: despesa.valor,
         tipo: 'eu devo',
         status: 'pendente',
-        data: despesa.created_at || new Date().toISOString()
+        data: despesa.created_at || toYMD(new Date())
       }]);
 
     return !error;
@@ -405,7 +405,7 @@ class SupabaseService {
           cliente: comanda.cliente,
           dispositivo_update: comanda.dispositivo,
           observacoes: comanda.observacoes,
-          data: comanda.created_at || new Date().toISOString()
+          data: comanda.created_at || toYMD(new Date())
         }])
         .select()
         .single();
@@ -625,7 +625,7 @@ export async function buscarSobras(periodo: string, dataInicio?: string, dataFim
     // Função para converter data para YYYY-MM-DD sem problemas de fuso
     const toYMD = (d: Date | string) => {
       const x = typeof d === 'string' ? new Date(d) : d;
-      return new Date(x.getFullYear(), x.getMonth(), x.getDate()).toISOString().split('T')[0];
+      return toYMD(x);
     };
 
     switch (periodo) {
