@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabaseService } from '@/services/supabase';
+import { buscarSobras } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { notifyError } from '@/utils/errorHandler';
 import { logger } from '@/utils/logger';
@@ -29,12 +29,16 @@ export const useSobras = () => {
     };
   }, []);
 
-  const buscarSobras = async (periodo: 'diario' | 'mensal' | 'anual' | 'personalizado', dataInicio?: Date, dataFim?: Date) => {
+  const carregarSobras = async (periodo: 'diario' | 'mensal' | 'anual' | 'personalizado', dataInicio?: Date, dataFim?: Date) => {
     setLoading(true);
     
     try {
-      // Usar a função do supabaseService que já trata online/offline
-      const dados = await supabaseService.buscarSobras(periodo, dataInicio, dataFim);
+      // Converter as datas para string no formato esperado
+      const dataInicioStr = dataInicio?.toISOString().split('T')[0];
+      const dataFimStr = dataFim?.toISOString().split('T')[0];
+      
+      // Usar a função standalone buscarSobras
+      const dados = await buscarSobras(periodo, dataInicioStr, dataFimStr);
       setSobras(dados);
       
       logger.debug(`📦 ${dados.length} sobras carregadas`);
@@ -51,6 +55,6 @@ export const useSobras = () => {
     sobras,
     loading,
     isOnline,
-    buscarSobras
+    buscarSobras: carregarSobras
   };
 };

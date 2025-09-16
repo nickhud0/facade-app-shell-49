@@ -542,4 +542,43 @@ class SupabaseService {
   }
 }
 
+// Função standalone para buscar sobras
+export async function buscarSobras(periodo: string, dataInicio?: string, dataFim?: string) {
+  try {
+    // Se offline, usar cache
+    if (!supabaseService.client || !supabaseService.getConnectionStatus()) {
+      const cache = localStorage.getItem("sobrasCache");
+      return cache ? JSON.parse(cache) : [];
+    }
+
+    let query = supabaseService.client.from("relatorio_vendas_excedentes").select("*");
+
+    // Aplica filtros de período
+    if (periodo === "mensal") {
+      const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+      query = query.gte("data", inicioMes);
+    } else if (periodo === "anual") {
+      const inicioAno = new Date(new Date().getFullYear(), 0, 1).toISOString();
+      query = query.gte("data", inicioAno);
+    } else if (periodo === "personalizado" && dataInicio && dataFim) {
+      query = query.gte("data", dataInicio).lte("data", dataFim);
+    }
+
+    // Ordenar por data mais recente primeiro
+    query = query.order("data", { ascending: false });
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    // Salvar no cache offline
+    localStorage.setItem("sobrasCache", JSON.stringify(data || []));
+    return data || [];
+  } catch (e) {
+    console.error("Erro ao buscar sobras:", e);
+    // Fallback para cache offline
+    const cache = localStorage.getItem("sobrasCache");
+    return cache ? JSON.parse(cache) : [];
+  }
+}
+
 export const supabaseService = new SupabaseService();
