@@ -1,6 +1,7 @@
 import { Network } from '@capacitor/network';
 import { supabaseService } from './supabase';
 import { databaseService } from './database';
+import { logger } from '@/utils/logger';
 
 export interface NetworkStatus {
   connected: boolean;
@@ -83,13 +84,13 @@ class NetworkService {
 
   private async handleOnlineReconnection(): Promise<void> {
     if (this.syncInProgress) {
-      console.log('Sync already in progress, skipping...');
+      logger.debug('Sync already in progress, skipping...');
       return;
     }
 
     try {
       this.syncInProgress = true;
-      console.log('Device came back online, starting sync...');
+      logger.debug('Device came back online, starting sync...');
 
       // Verificar se a conexão com Supabase ainda está válida
       const supabaseConnected = await supabaseService.testConnection();
@@ -97,12 +98,12 @@ class NetworkService {
       if (supabaseConnected) {
         // Processar fila de sincronização
         const syncResult = await supabaseService.processSyncQueue();
-        console.log('Sync completed:', syncResult);
+        logger.debug('Sync completed:', syncResult);
 
         // Se houve sincronização bem-sucedida, atualizar cache
         if (syncResult.success > 0) {
           await supabaseService.syncAllData();
-          console.log('Local cache updated with latest data');
+          logger.debug('Local cache updated with latest data');
         }
 
         // Notificar sobre sincronização

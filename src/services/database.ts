@@ -1,5 +1,6 @@
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
 import { Capacitor } from '@capacitor/core';
+import { logger } from '@/utils/logger';
 
 export interface SyncQueueItem {
   id_local?: number;
