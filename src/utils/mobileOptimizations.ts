@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Device } from '@capacitor/device';
+import { logger } from '@/utils/logger';
 
 // Otimizações específicas para mobile
 export class MobileOptimizations {
@@ -16,7 +17,7 @@ export class MobileOptimizations {
       // Otimizar performance
       await this.optimizePerformance();
       
-      console.log('✓ Mobile optimizations applied');
+      logger.debug('✓ Mobile optimizations applied');
     } catch (error) {
       console.warn('Mobile optimizations failed:', error);
     }

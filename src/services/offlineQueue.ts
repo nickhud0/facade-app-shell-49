@@ -7,6 +7,7 @@ import { idempotencyService } from '@/utils/idempotency';
 import { networkService } from '@/services/networkService';
 import { notifyError } from '@/utils/errorHandler';
 import { logger } from '@/utils/logger';
+import { toYMD } from '@/utils/formatters';
 
 export interface QueueItem {
   id: string;
@@ -47,7 +48,7 @@ class OfflineQueueService {
       tentativas: 0,
       maxTentativas: 3,
       status: 'pending',
-      created_at: new Date().toISOString()
+      created_at: toYMD(new Date())
     };
 
     const queue = this.getQueue();
@@ -94,7 +95,7 @@ class OfflineQueueService {
         try {
           item.status = 'processing';
           item.tentativas++;
-          item.last_attempt = new Date().toISOString();
+          item.last_attempt = toYMD(new Date());
           
           this.updateQueueItem(item);
 
@@ -117,7 +118,7 @@ class OfflineQueueService {
             logger.error(`💀 Item falhou definitivamente após ${item.tentativas} tentativas`);
           } else {
             item.status = 'pending';
-            item.next_retry = new Date(Date.now() + this.retryDelays[item.tentativas - 1]).toISOString();
+            item.next_retry = toYMD(new Date(Date.now() + this.retryDelays[item.tentativas - 1]));
             logger.debug(`⏰ Reagendado para ${item.next_retry}`);
           }
         }

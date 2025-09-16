@@ -2,6 +2,7 @@
 import { appService } from '@/services/appService';
 import { databaseService } from '@/services/database';
 import { networkService } from '@/services/networkService';
+import { logger } from '@/utils/logger';
 
 export interface AppHealthStatus {
   overall: 'healthy' | 'degraded' | 'unhealthy';
@@ -83,7 +84,7 @@ export async function checkAppHealth(): Promise<AppHealthStatus> {
 }
 
 export function logAppHealth(status: AppHealthStatus): void {
-  console.log('🏥 App Health Check:', {
+  logger.debug('🏥 App Health Check:', {
     overall: status.overall,
     services: status.services,
     pendingSync: status.pendingSync,
@@ -91,10 +92,10 @@ export function logAppHealth(status: AppHealthStatus): void {
   });
 
   if (status.overall === 'unhealthy') {
-    console.error('❌ App is in unhealthy state:', status.errors);
+    logger.error('❌ App is in unhealthy state:', status.errors);
   } else if (status.overall === 'degraded') {
-    console.warn('⚠️ App is in degraded state:', status.errors);
+    logger.warn('⚠️ App is in degraded state:', status.errors);
   } else {
-    console.log('✅ App is healthy');
+    logger.debug('✅ App is healthy');
   }
 }

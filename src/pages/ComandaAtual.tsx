@@ -16,6 +16,7 @@ import { useComandasOffline } from "@/hooks/useComandasOffline";
 import { prefixoService } from "@/services/prefixoService";
 import { Transacao } from "@/services/database";
 import { useToast } from "@/hooks/use-toast";
+import { toYMD } from "@/utils/formatters";
 
 import { formatCurrency } from "@/utils/formatters";
 
@@ -138,7 +139,7 @@ const ComandaAtual = () => {
         peso: item.quantidade,
         valor_total: item.total,
         observacoes: comandaState.observacao || undefined,
-        created_at: new Date().toISOString()
+        created_at: toYMD(new Date())
       };
 
       logger.debug('💾 Salvando transação:', transacao);
@@ -168,8 +169,8 @@ const ComandaAtual = () => {
         preco: item.preco,
         total: item.total
       })),
-      created_at: agora.toISOString(),
-      updated_at: agora.toISOString()
+      created_at: toYMD(agora),
+      updated_at: toYMD(agora)
     };
 
     logger.debug('💾 Salvando comanda completa:', comandaParaSalvar);

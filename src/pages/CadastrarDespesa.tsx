@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { formatDate } from "@/utils/formatters";
+import { formatDate, toYMD } from "@/utils/formatters";
 
 interface Despesa {
   id: number;
@@ -48,7 +48,7 @@ const CadastrarDespesa = () => {
       id: Date.now(),
       descricao: descricao.trim(),
       valor: parseFloat(valor),
-      created_at: new Date().toISOString()
+      created_at: toYMD(new Date())
     };
 
     // Salvar no localStorage

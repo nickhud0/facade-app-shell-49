@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { ComandaParaPDF } from './print/pdfService';
+import { logger } from '@/utils/logger';
 
 // Import the Bluetooth plugin
 let BluetoothPrinter: any = null;
@@ -62,7 +63,7 @@ class ThermalPrinterService {
     for (const cp of codepages) {
       try {
         await printer.write('\x1B\x74' + String.fromCharCode(cp));
-        console.log(`Codepage ${cp === 0x13 ? 'PC860' : cp === 0x02 ? 'PC850' : 'PC437'} configurado`);
+        logger.debug(`Codepage ${cp === 0x13 ? 'PC860' : cp === 0x02 ? 'PC850' : 'PC437'} configurado`);
         return true;
       } catch (error) {
         console.warn(`Falha ao configurar codepage ${cp}:`, error);

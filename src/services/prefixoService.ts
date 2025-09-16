@@ -1,4 +1,6 @@
 import { databaseV2Service } from './databaseV2';
+import { logger } from '@/utils/logger';
+import { toYMD } from '@/utils/formatters';
 
 interface PrefixoConfig {
   prefixoDispositivo: string;
@@ -33,8 +35,8 @@ class PrefixoService {
 
     const config: PrefixoConfig = {
       prefixoDispositivo: prefixo.toUpperCase(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      created_at: toYMD(new Date()),
+      updated_at: toYMD(new Date())
     };
 
     localStorage.setItem(this.PREFIXO_CONFIG_KEY, JSON.stringify(config));

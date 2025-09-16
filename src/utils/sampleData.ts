@@ -1,4 +1,6 @@
 import { databaseService, Material, Transacao, Vale, Despesa, Pendencia } from '@/services/database';
+import { logger } from '@/utils/logger';
+import { toYMD } from '@/utils/formatters';
 
 export const sampleMateriais: Omit<Material, 'id'>[] = [
   {
@@ -6,48 +8,48 @@ export const sampleMateriais: Omit<Material, 'id'>[] = [
     preco_compra_kg: 5.50,
     preco_venda_kg: 7.00,
     categoria: "Alumínio",
-    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
+    updated_at: toYMD(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
   },
   {
     nome: "Cobre Limpo",
     preco_compra_kg: 28.00,
     preco_venda_kg: 32.00,
     categoria: "Cobre",
-    created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)),
+    updated_at: toYMD(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000))
   },
   {
     nome: "Ferro Velho",
     preco_compra_kg: 0.80,
     preco_venda_kg: 1.20,
     categoria: "Metais Ferrosos",
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)),
+    updated_at: toYMD(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000))
   },
   {
     nome: "Aço Inox",
     preco_compra_kg: 4.50,
     preco_venda_kg: 6.50,
     categoria: "Metais Não-Ferrosos",
-    created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000)),
+    updated_at: toYMD(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000))
   },
   {
     nome: "Bateria de Carro",
     preco_compra_kg: 2.80,
     preco_venda_kg: 4.20,
     categoria: "Sucata Eletrônica",
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)),
+    updated_at: toYMD(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000))
   },
   {
     nome: "Fio de Cobre",
     preco_compra_kg: 24.00,
     preco_venda_kg: 28.00,
     categoria: "Cobre",
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)),
+    updated_at: toYMD(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000))
   }
 ];
 
@@ -59,7 +61,7 @@ export const sampleTransacoes: Omit<Transacao, 'id'>[] = [
     peso: 15.5,
     valor_total: 85.25,
     observacoes: "Compra inicial - lote de latinhas",
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000))
   },
   {
     tipo: 'compra',
@@ -67,7 +69,7 @@ export const sampleTransacoes: Omit<Transacao, 'id'>[] = [
     peso: 8.2,
     valor_total: 229.60,
     observacoes: "Cobre de qualidade alta",
-    created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000))
   },
   {
     tipo: 'compra',
@@ -75,7 +77,7 @@ export const sampleTransacoes: Omit<Transacao, 'id'>[] = [
     peso: 120.0,
     valor_total: 96.00,
     observacoes: "Lote grande de ferro",
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000))
   },
   
   // Vendas
@@ -85,7 +87,7 @@ export const sampleTransacoes: Omit<Transacao, 'id'>[] = [
     peso: 10.0,
     valor_total: 70.00,
     observacoes: "Venda para empresa recicladora",
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000))
   },
   {
     tipo: 'venda',
@@ -93,7 +95,7 @@ export const sampleTransacoes: Omit<Transacao, 'id'>[] = [
     peso: 80.0,
     valor_total: 96.00,
     observacoes: "Venda para siderúrgica",
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000))
   }
 ];
 
@@ -102,13 +104,13 @@ export const sampleVales: Omit<Vale, 'id'>[] = [
     valor: 150.00,
     descricao: "Vale para João Silva - compra de cobre",
     status: "pendente",
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000))
   },
   {
     valor: 80.00,
     descricao: "Vale para Maria Santos - latinha de alumínio",
     status: "pago",
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000))
   }
 ];
 
@@ -117,19 +119,19 @@ export const sampleDespesas: Omit<Despesa, 'id'>[] = [
     descricao: "Combustível para caminhão",
     valor: 120.00,
     categoria: "Transporte",
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000))
   },
   {
     descricao: "Balança nova",
     valor: 350.00,
     categoria: "Equipamentos",
-    created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000))
   },
   {
     descricao: "Manutenção da prensa",
     valor: 200.00,
     categoria: "Manutenção",
-    created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000))
   }
 ];
 
@@ -139,30 +141,30 @@ export const samplePendencias: Omit<Pendencia, 'id'>[] = [
     valor: 200.00,
     status: "pendente",
     prioridade: "alta",
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000))
   },
   {
     descricao: "Comprar sacos para armazenamento",
     valor: 80.00,
     status: "pendente",
     prioridade: "media",
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+    created_at: toYMD(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000))
   }
 ];
 
 export const initializeSampleData = async (): Promise<void> => {
   try {
-    console.log('🌱 Checking if sample data needs to be initialized...');
+    logger.debug('🌱 Checking if sample data needs to be initialized...');
     
     // Verificar se já existem dados no cache
     const existingMateriais = await databaseService.getCachedMateriais();
     
     if (existingMateriais.length > 0) {
-      console.log('✅ Sample data already exists, skipping initialization');
+      logger.debug('✅ Sample data already exists, skipping initialization');
       return;
     }
 
-    console.log('🌱 Initializing sample data...');
+    logger.debug('🌱 Initializing sample data...');
 
     // Criar materiais com IDs incrementais
     const materiaisComId: Material[] = sampleMateriais.map((material, index) => ({
@@ -204,12 +206,12 @@ export const initializeSampleData = async (): Promise<void> => {
     // Marcar que os dados de exemplo foram inicializados
     await databaseService.setConfig('sample_data_initialized', 'true');
 
-    console.log('✅ Sample data initialized successfully');
-    console.log(`- ${materiaisComId.length} materiais`);
-    console.log(`- ${transacoesComId.length} transações`);
-    console.log(`- ${valesComId.length} vales`);
-    console.log(`- ${despesasComId.length} despesas`);
-    console.log(`- ${pendenciasComId.length} pendências`);
+    logger.debug('✅ Sample data initialized successfully');
+    logger.debug(`- ${materiaisComId.length} materiais`);
+    logger.debug(`- ${transacoesComId.length} transações`);
+    logger.debug(`- ${valesComId.length} vales`);
+    logger.debug(`- ${despesasComId.length} despesas`);
+    logger.debug(`- ${pendenciasComId.length} pendências`);
 
   } catch (error) {
     console.error('❌ Error initializing sample data:', error);
@@ -218,7 +220,7 @@ export const initializeSampleData = async (): Promise<void> => {
 
 export const resetSampleData = async (): Promise<void> => {
   try {
-    console.log('🔄 Resetting sample data...');
+    logger.debug('🔄 Resetting sample data...');
     
     // Limpar configuração
     await databaseService.setConfig('sample_data_initialized', 'false');
@@ -226,7 +228,7 @@ export const resetSampleData = async (): Promise<void> => {
     // Reinicializar
     await initializeSampleData();
     
-    console.log('✅ Sample data reset completed');
+    logger.debug('✅ Sample data reset completed');
   } catch (error) {
     console.error('❌ Error resetting sample data:', error);
   }

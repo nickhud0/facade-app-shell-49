@@ -11,6 +11,7 @@ import { useOfflineData } from "@/hooks/useOfflineData";
 import { Material } from "@/services/database";
 import { useToast } from "@/hooks/use-toast";
 import { NetworkStatus } from "@/components/NetworkStatus";
+import { toYMD } from "@/utils/formatters";
 
 const TabelaPrecos = () => {
   const navigate = useNavigate();
@@ -31,8 +32,8 @@ const TabelaPrecos = () => {
       preco_compra_kg: 28.00,
       preco_venda_kg: 32.00,
       categoria: "Cobre",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      created_at: toYMD(new Date()),
+      updated_at: toYMD(new Date())
     },
     {
       id: 2,
@@ -40,8 +41,8 @@ const TabelaPrecos = () => {
       preco_compra_kg: 0.80,
       preco_venda_kg: 1.20,
       categoria: "Metais Ferrosos", 
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      created_at: toYMD(new Date()),
+      updated_at: toYMD(new Date())
     },
     {
       id: 3,
@@ -49,8 +50,8 @@ const TabelaPrecos = () => {
       preco_compra_kg: 10.00,
       preco_venda_kg: 14.50,
       categoria: "Alumínio",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      created_at: toYMD(new Date()),
+      updated_at: toYMD(new Date())
     },
     {
       id: 4,
@@ -58,8 +59,8 @@ const TabelaPrecos = () => {
       preco_compra_kg: 23.75,
       preco_venda_kg: 28.20,
       categoria: "Metais Não-Ferrosos",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      created_at: toYMD(new Date()),
+      updated_at: toYMD(new Date())
     },
     {
       id: 5,
@@ -67,8 +68,8 @@ const TabelaPrecos = () => {
       preco_compra_kg: 2.80,
       preco_venda_kg: 4.20,
       categoria: "Sucata Eletrônica",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      created_at: toYMD(new Date()),
+      updated_at: toYMD(new Date())
     }
   ];
   
