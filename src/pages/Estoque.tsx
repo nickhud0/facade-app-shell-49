@@ -211,13 +211,13 @@ const Estoque = () => {
                   </div>
                 </TableCell>
                 <TableCell className="text-center font-semibold">
-                  {item.kg_disponivel.toFixed(1)} kg
+                  {Math.max(0, item.kg_disponivel).toFixed(1)} kg
                 </TableCell>
                 <TableCell className="text-center font-semibold text-primary">
                   R$ {item.valor_medio_compra.toFixed(2)}/kg
                 </TableCell>
                 <TableCell className="text-right font-semibold text-success">
-                  R$ {item.valor_total_estoque.toFixed(2)}
+                  R$ {Math.max(0, item.valor_total_estoque).toFixed(2)}
                 </TableCell>
               </TableRow>
             ))}

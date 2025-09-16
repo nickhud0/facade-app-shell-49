@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { useRelatorios, RelatorioPeriodo } from "@/hooks/useRelatorios";
 import { formatLastUpdate } from "@/utils/syncStatus";
 import { networkService } from "@/services/networkService";
+import { SobrasPopup } from "@/components/SobrasPopup";
 
 
 const Relatorios = () => {
@@ -136,14 +137,16 @@ const Relatorios = () => {
           </Button>
           <h1 className="text-2xl font-bold text-foreground">Relatórios</h1>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={refreshData}
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Atualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={refreshData}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Atualizar
+          </Button>
+        </div>
       </div>
 
       {/* Banner Offline */}
@@ -165,7 +168,10 @@ const Relatorios = () => {
         </TabsList>
 
         <TabsContent value="diario" className="space-y-6">
-          <h2 className="text-lg font-semibold text-foreground">Relatório Diário - {format(new Date(), "dd/MM/yyyy")}</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Relatório Diário - {format(new Date(), "dd/MM/yyyy")}</h2>
+            <SobrasPopup periodo="diario" />
+          </div>
           {renderTotais({
             totalCompras: 2450.80,
             totalVendas: 3120.50,
@@ -201,7 +207,10 @@ const Relatorios = () => {
         </TabsContent>
 
         <TabsContent value="mensal" className="space-y-6">
-          <h2 className="text-lg font-semibold text-foreground">Relatório Mensal - {format(new Date(), "MMMM/yyyy")}</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Relatório Mensal - {format(new Date(), "MMMM/yyyy")}</h2>
+            <SobrasPopup periodo="mensal" />
+          </div>
           {renderTotais({
             totalCompras: 18450.30,
             totalVendas: 22180.75,
@@ -241,7 +250,10 @@ const Relatorios = () => {
         </TabsContent>
 
         <TabsContent value="anual" className="space-y-6">
-          <h2 className="text-lg font-semibold text-foreground">Relatório Anual - {format(new Date(), "yyyy")}</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Relatório Anual - {format(new Date(), "yyyy")}</h2>
+            <SobrasPopup periodo="anual" />
+          </div>
           {renderTotais({
             totalCompras: 185420.80,
             totalVendas: 248650.90,
@@ -339,9 +351,12 @@ const Relatorios = () => {
 
           {dataInicio && dataFim ? (
             <>
-              <h2 className="text-lg font-semibold text-foreground">
-                Relatório Personalizado - {format(dataInicio, "dd/MM/yyyy")} até {format(dataFim, "dd/MM/yyyy")}
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Relatório Personalizado - {format(dataInicio, "dd/MM/yyyy")} até {format(dataFim, "dd/MM/yyyy")}
+                </h2>
+                <SobrasPopup periodo="personalizado" dataInicio={dataInicio} dataFim={dataFim} />
+              </div>
               {(() => {
                 const dadosPersonalizados = relatorioPersonalizado(dataInicio, dataFim);
                 const temDados = dadosPersonalizados.comprasPorMaterial.length > 0 || 
