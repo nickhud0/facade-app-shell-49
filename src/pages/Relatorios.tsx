@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 import { useRelatorios, RelatorioPeriodo } from "@/hooks/useRelatorios";
 import { formatLastUpdate } from "@/utils/syncStatus";
 import { networkService } from "@/services/networkService";
+import { formatCurrency, formatWeight, formatDate } from '@/utils/formatters';
+import { ResumoSkeleton, TableSkeleton } from '@/components/ui/skeleton';
 import { SobrasPopup } from "@/components/SobrasPopup";
 
 
@@ -29,6 +31,7 @@ const Relatorios = () => {
     relatorioAnual, 
     relatorioPersonalizado, 
     refreshData,
+    loading,
     hasData 
   } = useRelatorios();
 

@@ -439,6 +439,39 @@ class SupabaseService {
     }
   }
 
+  // Métodos públicos para a fila offline
+  async syncComanda(dados: any): Promise<boolean> {
+    return this.createComanda(dados);
+  }
+
+  async syncComandaUpdate(dados: any): Promise<boolean> {
+    return this.updateComanda(dados.id, dados);
+  }
+
+  async syncMaterial(dados: any): Promise<boolean> {
+    return this.createMaterial(dados);
+  }
+
+  async syncMaterialUpdate(dados: any): Promise<boolean> {
+    return this.updateMaterial(dados.id, dados);
+  }
+
+  async syncVale(dados: any): Promise<boolean> {
+    return this.createVale(dados);
+  }
+
+  async syncDespesa(dados: any): Promise<boolean> {
+    return this.createDespesa(dados);
+  }
+
+  async syncPendencia(dados: any): Promise<boolean> {
+    return this.createPendencia(dados);
+  }
+
+  async syncPendenciaUpdate(dados: any): Promise<boolean> {
+    return this.updatePendencia(dados.id, dados);
+  }
+
   // BUSCA NO HISTÓRICO COMPLETO (somente quando online)
   async searchComandas(searchTerm: string, limit = 50): Promise<Comanda[]> {
     if (!this.client || !this.isConnected) {

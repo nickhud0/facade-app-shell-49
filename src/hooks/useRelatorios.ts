@@ -43,8 +43,9 @@ export interface RelatorioPeriodo {
 }
 
 export const useRelatorios = () => {
-  const { data: transacoes, refreshData: refreshTransacoes } = useOfflineData<Transacao>('transacoes');
-  const { data: despesas, refreshData: refreshDespesas } = useOfflineData<Despesa>('despesas');
+  const [loading, setLoading] = useState(false);
+  const { data: transacoes, refreshData: refreshTransacoes, loading: loadingTransacoes } = useOfflineData<Transacao>('transacoes');
+  const { data: despesas, refreshData: refreshDespesas, loading: loadingDespesas } = useOfflineData<Despesa>('despesas');
 
   // Usar despesas do sistema offline-first em vez de localStorage direto
   useEffect(() => {
@@ -180,8 +181,13 @@ export const useRelatorios = () => {
   };
 
   const refreshData = () => {
-    refreshTransacoes();
-    refreshDespesas();
+    setLoading(true);
+    Promise.all([
+      refreshTransacoes(),
+      refreshDespesas()
+    ]).finally(() => {
+      setLoading(false);
+    });
   };
 
   return {
@@ -190,6 +196,7 @@ export const useRelatorios = () => {
     relatorioAnual,
     relatorioPersonalizado,
     refreshData,
+    loading: loading || loadingTransacoes || loadingDespesas,
     hasData: transacoes.length > 0
   };
 };

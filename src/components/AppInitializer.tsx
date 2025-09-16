@@ -24,6 +24,12 @@ export const AppInitializer = ({ children }: AppInitializerProps) => {
         await MobileOptimizations.initialize();
         MobileOptimizations.adaptUIForDevice();
         
+        const { appStateManager } = await import('@/utils/appStateManager');
+        appStateManager.initialize();
+        
+        const { idempotencyService } = await import('@/utils/idempotency');
+        await idempotencyService.initialize();
+        
         logger.debug('✅ App initialization completed');
       } catch (error) {
         notifyError(error, 'Inicialização do App');
