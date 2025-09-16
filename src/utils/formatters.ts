@@ -44,7 +44,7 @@ export const formatWeight = (value: number): string => {
 // Converter data para formato YYYY-MM-DD (para queries) sem problemas de fuso horário
 export const toYMD = (d: Date | string): string => {
   const x = typeof d === 'string' ? new Date(d) : d;
-  return new Date(x.getFullYear(), x.getMonth(), x.getDate()).toISOString().split('T')[0];
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
 };
 
 // Converter data para formato YYYY-MM-DD (para queries) - deprecated, use toYMD()

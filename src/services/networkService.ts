@@ -20,7 +20,7 @@ class NetworkService {
 
       // Escutar mudanças na conectividade
       Network.addListener('networkStatusChange', async (status) => {
-        console.log('Network status changed:', status);
+        logger.debug('Network status changed:', status);
         
         const wasOnline = this.isOnline;
         this.isOnline = status.connected;
@@ -37,7 +37,7 @@ class NetworkService {
         }
       });
 
-      console.log('Network service initialized. Online:', this.isOnline);
+      logger.debug('Network service initialized. Online:', this.isOnline);
     } catch (error) {
       console.warn('Network service initialization failed, using fallback:', error);
       // Assumir online como padrão se Capacitor Network falhar no web

@@ -94,7 +94,7 @@ class DatabaseV2Service {
       await this.db.open();
       await this.createTables();
       
-      console.log('Database V2 initialized successfully');
+      logger.debug('Database V2 initialized successfully');
     } catch (error) {
       console.error('Error initializing database V2:', error);
       throw error;

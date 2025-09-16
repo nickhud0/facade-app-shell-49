@@ -107,7 +107,7 @@ class DatabaseService {
 
           await this.db.open();
           await this.createTables();
-          console.log('SQLite database initialized successfully');
+          logger.debug('SQLite database initialized successfully');
         } catch (sqliteError) {
           console.warn('SQLite failed on web, using localStorage fallback:', sqliteError);
           // Configurar fallback para localStorage
@@ -125,7 +125,7 @@ class DatabaseService {
 
         await this.db.open();
         await this.createTables();
-        console.log('Mobile SQLite database initialized successfully');
+        logger.debug('Mobile SQLite database initialized successfully');
       }
     } catch (error) {
       console.error('Error initializing database:', error);

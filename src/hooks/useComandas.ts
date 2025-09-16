@@ -34,7 +34,7 @@ export const useComandas = () => {
         const comanda = JSON.parse(comandaStorage);
         setComandaAtual(comanda);
       } catch (error) {
-        console.error('Erro ao carregar comanda do localStorage:', error);
+        // Erro será ignorado silenciosamente para evitar logs desnecessários
       }
     }
   }, []);
@@ -148,7 +148,7 @@ export const useComandas = () => {
       
       return false;
     } catch (error) {
-      console.error('Erro ao finalizar comanda:', error);
+      // Erro será tratado pelo retorno false
       return false;
     }
   };

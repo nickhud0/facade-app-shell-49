@@ -3,6 +3,7 @@ import { databaseService, Vale } from '@/services/database';
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 export interface UseValesDataReturn {
   vales: Vale[];
@@ -200,7 +201,7 @@ export function useValesData(): UseValesDataReturn {
       
       // Se voltou online, sincronizar automaticamente
       if (status.connected && wasOffline && supabaseService.getConnectionStatus()) {
-        console.log('Auto-syncing vales after coming back online...');
+        logger.debug('Auto-syncing vales after coming back online...');
         syncFromServer().catch(err => 
           console.error('Error auto-syncing vales:', err)
         );

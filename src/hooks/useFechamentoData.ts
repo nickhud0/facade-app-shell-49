@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 export interface PeriodoAtual {
   receitas: number;
@@ -226,7 +227,7 @@ export function useFechamentoData(): UseFechamentoDataReturn {
       
       // Se voltou online, atualizar dados automaticamente
       if (status.connected && wasOffline && supabaseService.getConnectionStatus()) {
-        console.log('Auto-refreshing fechamento data after coming back online...');
+        logger.debug('Auto-refreshing fechamento data after coming back online...');
         refreshData().catch(err => 
           console.error('Error auto-refreshing fechamento data:', err)
         );

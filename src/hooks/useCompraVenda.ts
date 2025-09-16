@@ -3,6 +3,7 @@ import { databaseService, Material } from '@/services/database';
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 export interface UseCompraVendaReturn {
   materiais: Material[];
@@ -140,7 +141,7 @@ export function useCompraVenda(): UseCompraVendaReturn {
       
       // Se voltou online, sincronizar automaticamente
       if (status.connected && wasOffline && supabaseService.getConnectionStatus()) {
-        console.log('Auto-syncing materials after coming back online...');
+        logger.debug('Auto-syncing materials after coming back online...');
         syncFromServer().catch(err => 
           console.error('Error auto-syncing materials:', err)
         );

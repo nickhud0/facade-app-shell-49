@@ -1,5 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { databaseService, Material, Transacao, Vale, Despesa, Pendencia, Comanda } from './database';
+import { logger } from '@/utils/logger';
+import { toYMD } from '@/utils/formatters';
 
 export interface SupabaseConfig {
   url: string;
@@ -24,7 +26,7 @@ class SupabaseService {
       }
 
       this.isConnected = true;
-      console.log('Supabase connection established');
+      logger.debug('Supabase connection established');
       return true;
     } catch (error) {
       console.error('Error initializing Supabase:', error);
@@ -57,7 +59,7 @@ class SupabaseService {
     }
 
     try {
-      console.log('Starting full data sync...');
+      logger.debug('Starting full data sync...');
 
       // Sync materiais
       await this.syncMateriais();
@@ -77,7 +79,7 @@ class SupabaseService {
       // Sync comandas (últimas 20)
       await this.syncComandas();
 
-      console.log('Full data sync completed');
+      logger.debug('Full data sync completed');
     } catch (error) {
       console.error('Error during full sync:', error);
       throw error;
@@ -562,23 +564,23 @@ class SupabaseService {
       // Aplica filtros de período
       switch (periodo) {
         case 'diario':
-          query = query.gte('data', new Date().toISOString().split('T')[0]);
+          query = query.gte('data', toYMD(new Date()));
           break;
         case 'mensal':
           const inicioMes = new Date();
           inicioMes.setDate(1);
-          query = query.gte('data', inicioMes.toISOString().split('T')[0]);
+          query = query.gte('data', toYMD(inicioMes));
           break;
         case 'anual':
           const inicioAno = new Date();
           inicioAno.setMonth(0, 1);
-          query = query.gte('data', inicioAno.toISOString().split('T')[0]);
+          query = query.gte('data', toYMD(inicioAno));
           break;
         case 'personalizado':
           if (dataInicio && dataFim) {
             query = query
-              .gte('data', dataInicio.toISOString().split('T')[0])
-              .lte('data', dataFim.toISOString().split('T')[0]);
+              .gte('data', toYMD(dataInicio))
+              .lte('data', toYMD(dataFim));
           }
           break;
       }
