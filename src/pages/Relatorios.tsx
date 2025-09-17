@@ -12,23 +12,22 @@ import { cn } from "@/lib/utils";
 import { formatCurrency, formatWeight, formatDate } from '@/utils/formatters';
 import { SobrasPopup } from "@/components/SobrasPopup";
 import { LoadingSpinner, ErrorState, PageWrapper, OfflineBanner } from "@/components/ui/loading-states";
-import { useTransacoes } from "@/hooks/useStandardData";
-import { networkService } from "@/services/networkService";
-
+import { useDataService } from "@/hooks/useDataService";
+import { Transacao } from "@/services/localDbService";
 
 const Relatorios = () => {
   const navigate = useNavigate();
   const [dataInicio, setDataInicio] = useState<Date>();
   const [dataFim, setDataFim] = useState<Date>();
-  const [isOnline, setIsOnline] = useState(networkService.getConnectionStatus());
   
   const { 
-    transacoes, 
+    data: transacoes, 
     loading, 
     error, 
-    refreshTransacoes,
-    hasData
-  } = useTransacoes(1000);
+    refresh: refreshTransacoes,
+    hasData,
+    isOnline
+  } = useDataService<Transacao>('transacoes');
 
   // Processar dados reais das transações
   const processarDados = (filtroTipo?: 'dia' | 'mes' | 'ano', inicio?: Date, fim?: Date) => {
@@ -37,25 +36,25 @@ const Relatorios = () => {
     if (filtroTipo === 'dia') {
       const hoje = new Date();
       transacoesFiltradas = transacoes.filter(t => {
-        const dataTransacao = new Date(t.created_at);
+        const dataTransacao = new Date(t.created_at || '');
         return dataTransacao.toDateString() === hoje.toDateString();
       });
     } else if (filtroTipo === 'mes') {
       const agora = new Date();
       transacoesFiltradas = transacoes.filter(t => {
-        const dataTransacao = new Date(t.created_at);
+        const dataTransacao = new Date(t.created_at || '');
         return dataTransacao.getMonth() === agora.getMonth() && 
                dataTransacao.getFullYear() === agora.getFullYear();
       });
     } else if (filtroTipo === 'ano') {
       const agora = new Date();
       transacoesFiltradas = transacoes.filter(t => {
-        const dataTransacao = new Date(t.created_at);
+        const dataTransacao = new Date(t.created_at || '');
         return dataTransacao.getFullYear() === agora.getFullYear();
       });
     } else if (inicio && fim) {
       transacoesFiltradas = transacoes.filter(t => {
-        const dataTransacao = new Date(t.created_at);
+        const dataTransacao = new Date(t.created_at || '');
         return dataTransacao >= inicio && dataTransacao <= fim;
       });
     }
@@ -72,23 +71,25 @@ const Relatorios = () => {
       totalVendas,
       totalDespesas: 0, // TODO: Implementar quando houver despesas
       lucro,
-      comprasPorMaterial:  compras.reduce((acc, t) => {
-        const existing = acc.find(item => item.material === `Material ${t.material_id}`);
+      comprasPorMaterial: compras.reduce((acc, t) => {
+        const nome = t.material_nome || `Material ${t.material_id}`;
+        const existing = acc.find(item => item.material === nome);
         if (existing) {
           existing.kg += t.peso;
           existing.valor += t.valor_total;
         } else {
-          acc.push({ material: `Material ${t.material_id}`, kg: t.peso, valor: t.valor_total });
+          acc.push({ material: nome, kg: t.peso, valor: t.valor_total });
         }
         return acc;
       }, [] as any[]),
       vendasPorMaterial: vendas.reduce((acc, t) => {
-        const existing = acc.find(item => item.material === `Material ${t.material_id}`);
+        const nome = t.material_nome || `Material ${t.material_id}`;
+        const existing = acc.find(item => item.material === nome);
         if (existing) {
           existing.kg += t.peso;
           existing.valor += t.valor_total;
         } else {
-          acc.push({ material: `Material ${t.material_id}`, kg: t.peso, valor: t.valor_total });
+          acc.push({ material: nome, kg: t.peso, valor: t.valor_total });
         }
         return acc;
       }, [] as any[])
@@ -129,10 +130,10 @@ const Relatorios = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {dados.comprasPorMaterial.map((item, index) => (
+            {dados.comprasPorMaterial.map((item: any, index: number) => (
               <TableRow key={index}>
                 <TableCell>{item.material}</TableCell>
-                 <TableCell className="text-center font-semibold">{formatWeight(item.kg).replace(' kg', '')}</TableCell>
+                <TableCell className="text-center font-semibold">{item.kg.toFixed(1)}</TableCell>
                 <TableCell className="text-right font-semibold text-success">{formatCurrency(item.valor)}</TableCell>
               </TableRow>
             ))}
@@ -151,10 +152,10 @@ const Relatorios = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {dados.vendasPorMaterial.map((item, index) => (
+            {dados.vendasPorMaterial.map((item: any, index: number) => (
               <TableRow key={index}>
                 <TableCell>{item.material}</TableCell>
-                 <TableCell className="text-center font-semibold">{formatWeight(item.kg).replace(' kg', '')}</TableCell>
+                <TableCell className="text-center font-semibold">{item.kg.toFixed(1)}</TableCell>
                 <TableCell className="text-right font-semibold text-success">{formatCurrency(item.valor)}</TableCell>
               </TableRow>
             ))}
@@ -195,160 +196,159 @@ const Relatorios = () => {
         onRetry={refreshTransacoes}
         loadingMessage="Carregando dados dos relatórios..."
       >
+        <Tabs defaultValue="diario" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="diario">Diário</TabsTrigger>
+            <TabsTrigger value="mensal">Mensal</TabsTrigger>
+            <TabsTrigger value="anual">Anual</TabsTrigger>
+            <TabsTrigger value="personalizado">Personalizado</TabsTrigger>
+          </TabsList>
 
-      <Tabs defaultValue="diario" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="diario">Diário</TabsTrigger>
-          <TabsTrigger value="mensal">Mensal</TabsTrigger>
-          <TabsTrigger value="anual">Anual</TabsTrigger>
-          <TabsTrigger value="personalizado">Personalizado</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="diario" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Relatório Diário - {formatDate(new Date())}</h2>
-            <SobrasPopup periodo="diario" />
-          </div>
-          {(() => {
-            const dadosDiarios = processarDados('dia');
-            return (
-              <>
-                {renderTotais(dadosDiarios)}
-                {renderTabelas(dadosDiarios)}
-              </>
-            );
-          })()}
-        </TabsContent>
-
-        <TabsContent value="mensal" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Relatório Mensal - {format(new Date(), "MM/yyyy")}</h2>
-            <SobrasPopup periodo="mensal" />
-          </div>
-          {(() => {
-            const dadosMensais = processarDados('mes');
-            return (
-              <>
-                {renderTotais(dadosMensais)}
-                {renderTabelas(dadosMensais)}
-              </>
-            );
-          })()}
-        </TabsContent>
-
-        <TabsContent value="anual" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Relatório Anual - {format(new Date(), "yyyy")}</h2>
-            <SobrasPopup periodo="anual" />
-          </div>
-          {(() => {
-            const dadosAnuais = processarDados('ano');
-            return (
-              <>
-                {renderTotais(dadosAnuais)}
-                {renderTabelas(dadosAnuais)}
-              </>
-            );
-          })()}
-        </TabsContent>
-
-        <TabsContent value="personalizado" className="space-y-6">
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="flex flex-col space-y-2">
-              <label className="text-sm font-medium">Data Início</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[200px] justify-start text-left font-normal",
-                      !dataInicio && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataInicio ? format(dataInicio, "dd/MM/yyyy") : "Selecionar data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={dataInicio}
-                    onSelect={setDataInicio}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
+          <TabsContent value="diario" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Relatório Diário - {formatDate(new Date())}</h2>
+              <SobrasPopup periodo="diario" />
             </div>
+            {(() => {
+              const dadosDiarios = processarDados('dia');
+              return (
+                <>
+                  {renderTotais(dadosDiarios)}
+                  {renderTabelas(dadosDiarios)}
+                </>
+              );
+            })()}
+          </TabsContent>
 
-            <div className="flex flex-col space-y-2">
-              <label className="text-sm font-medium">Data Fim</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[200px] justify-start text-left font-normal",
-                      !dataFim && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataFim ? format(dataFim, "dd/MM/yyyy") : "Selecionar data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={dataFim}
-                    onSelect={setDataFim}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
+          <TabsContent value="mensal" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Relatório Mensal - {format(new Date(), "MM/yyyy")}</h2>
+              <SobrasPopup periodo="mensal" />
             </div>
-          </div>
+            {(() => {
+              const dadosMensais = processarDados('mes');
+              return (
+                <>
+                  {renderTotais(dadosMensais)}
+                  {renderTabelas(dadosMensais)}
+                </>
+              );
+            })()}
+          </TabsContent>
 
-          {dataInicio && dataFim ? (
-            <>
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-foreground">
-                  Relatório Personalizado - {format(dataInicio, "dd/MM/yyyy")} até {format(dataFim, "dd/MM/yyyy")}
-                </h2>
-                <SobrasPopup periodo="personalizado" dataInicio={dataInicio} dataFim={dataFim} />
+          <TabsContent value="anual" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Relatório Anual - {format(new Date(), "yyyy")}</h2>
+              <SobrasPopup periodo="anual" />
+            </div>
+            {(() => {
+              const dadosAnuais = processarDados('ano');
+              return (
+                <>
+                  {renderTotais(dadosAnuais)}
+                  {renderTabelas(dadosAnuais)}
+                </>
+              );
+            })()}
+          </TabsContent>
+
+          <TabsContent value="personalizado" className="space-y-6">
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium">Data Início</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[200px] justify-start text-left font-normal",
+                        !dataInicio && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dataInicio ? format(dataInicio, "dd/MM/yyyy") : "Selecionar data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={dataInicio}
+                      onSelect={setDataInicio}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
-              {(() => {
-                const dadosPersonalizados = processarDados(undefined, dataInicio, dataFim);
-                const temDados = dadosPersonalizados.comprasPorMaterial.length > 0 || 
-                                dadosPersonalizados.vendasPorMaterial.length > 0 || 
-                                dadosPersonalizados.totalVendas > 0 || 
-                                dadosPersonalizados.totalCompras > 0;
-                
-                if (!temDados) {
+
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium">Data Fim</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[200px] justify-start text-left font-normal",
+                        !dataFim && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dataFim ? format(dataFim, "dd/MM/yyyy") : "Selecionar data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={dataFim}
+                      onSelect={setDataFim}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            {dataInicio && dataFim ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Relatório Personalizado - {format(dataInicio, "dd/MM/yyyy")} até {format(dataFim, "dd/MM/yyyy")}
+                  </h2>
+                  <SobrasPopup periodo="personalizado" dataInicio={dataInicio} dataFim={dataFim} />
+                </div>
+                {(() => {
+                  const dadosPersonalizados = processarDados(undefined, dataInicio, dataFim);
+                  const temDados = dadosPersonalizados.comprasPorMaterial.length > 0 || 
+                                  dadosPersonalizados.vendasPorMaterial.length > 0 || 
+                                  dadosPersonalizados.totalVendas > 0 || 
+                                  dadosPersonalizados.totalCompras > 0;
+                  
+                  if (!temDados) {
+                    return (
+                      <Card className="p-6 text-center">
+                        <p className="text-muted-foreground">
+                          Nenhuma transação encontrada para o período selecionado.
+                        </p>
+                      </Card>
+                    );
+                  }
+                  
                   return (
-                    <Card className="p-6 text-center">
-                      <p className="text-muted-foreground">
-                        Nenhuma transação encontrada para o período selecionado.
-                      </p>
-                    </Card>
+                    <>
+                      {renderTotais(dadosPersonalizados)}
+                      {renderTabelas(dadosPersonalizados)}
+                    </>
                   );
-                }
-                
-                return (
-                  <>
-                    {renderTotais(dadosPersonalizados)}
-                    {renderTabelas(dadosPersonalizados)}
-                  </>
-                );
-              })()}
-            </>
-          ) : (
-            <Card className="p-8 text-center">
-              <p className="text-muted-foreground">Selecione as datas para gerar o relatório personalizado</p>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+                })()}
+              </>
+            ) : (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">Selecione as datas para gerar o relatório personalizado</p>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </PageWrapper>
     </div>
   );

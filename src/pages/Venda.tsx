@@ -1,20 +1,17 @@
-import { ArrowLeft, Plus, ShoppingCart, DollarSign, Package } from "lucide-react";
+import { ArrowLeft, Plus, Package } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { logger } from '@/utils/logger';
-import { notifyError } from '@/utils/errorHandler';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useOfflineData } from "@/hooks/useOfflineData";
-import { Transacao, Material } from "@/services/database";
 import { useToast } from "@/hooks/use-toast";
 import { NetworkStatus } from "@/components/NetworkStatus";
-import { toYMD } from "@/utils/formatters";
-
 import { formatCurrency } from "@/utils/formatters";
+import { useDataService } from "@/hooks/useDataService";
+import { Material, Transacao } from "@/services/localDbService";
+import { LoadingSpinner, ErrorState, EmptyState, PageWrapper } from "@/components/ui/loading-states";
 
 const Venda = () => {
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
@@ -24,8 +21,20 @@ const Venda = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { createItem } = useOfflineData<Transacao>('transacoes');
-  const { data: materiais, loading: loadingMateriais } = useOfflineData<Material>('materiais');
+
+  const materiaisService = useDataService<Material>('materiais');
+  const transacoesService = useDataService<Transacao>('transacoes');
+
+  const { 
+    data: materiais, 
+    loading: loadingMateriais, 
+    error: errorMateriais,
+    isOnline,
+    hasData,
+    refresh: refreshMateriais
+  } = materiaisService;
+
+  const { createItem: createTransacao } = transacoesService;
 
   // Verificar se existe uma comanda de compra em andamento
   useEffect(() => {
@@ -33,17 +42,21 @@ const Venda = () => {
     if (comandaStorage) {
       const comanda = JSON.parse(comandaStorage);
       if (comanda.tipo === "compra" && comanda.itens.length > 0) {
-        alert("Não é possível adicionar materiais de venda em uma comanda de compra!");
+        toast({
+          title: "Atenção",
+          description: "Não é possível adicionar materiais de venda em uma comanda de compra!",
+          variant: "destructive"
+        });
         navigate("/comanda-atual");
         return;
       }
     }
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handleMaterialClick = (material: Material) => {
     setSelectedMaterial(material);
     setPeso("");
-    setPrecoPersonalizado(material.preco_venda_kg.toString());
+    setPrecoPersonalizado((material.preco_venda_kg || 0).toString());
     setDesconto("");
     setIsDialogOpen(true);
   };
@@ -58,20 +71,16 @@ const Venda = () => {
     const total = pesoLiquido * Math.max(0, precoNum);
 
     // Criar transação para o banco de dados
-    const novaTransacao: Omit<Transacao, 'id'> = {
+    const success = await createTransacao({
       tipo: 'venda',
       material_id: selectedMaterial.id!,
       peso: pesoLiquido,
       valor_total: total,
       observacoes: desconto ? `Desconto: ${descontoKg}kg` : undefined,
-      created_at: toYMD(new Date())
-    };
+      created_at: new Date().toISOString()
+    });
 
-    // Salvar transação no banco offline
-    logger.debug('💾 Salvando transação de venda:', novaTransacao);
-    const sucesso = await createItem(novaTransacao);
-    
-    if (sucesso) {
+    if (success) {
       // Criar item para a comanda local (compatibilidade)
       const novoItem = {
         id: Date.now(),
@@ -91,18 +100,12 @@ const Venda = () => {
       
       comanda.itens.push(novoItem);
       comanda.tipo = "venda";
-      comanda.total = comanda.itens.reduce((acc, item) => acc + item.total, 0);
+      comanda.total = comanda.itens.reduce((acc: any, item: any) => acc + item.total, 0);
       
       localStorage.setItem('comandaAtual', JSON.stringify(comanda));
       
       setIsDialogOpen(false);
       navigate("/comanda-atual");
-    } else {
-      toast({
-        title: "Erro",
-        description: "Erro ao adicionar material à venda",
-        variant: "destructive"
-      });
     }
   };
 
@@ -134,11 +137,9 @@ const Venda = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="mr-3">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+          <Button variant="ghost" size="sm" className="mr-3" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
           <h1 className="text-2xl font-bold text-foreground">Vendas</h1>
         </div>
         <NetworkStatus />
@@ -159,26 +160,23 @@ const Venda = () => {
         </div>
 
         {loadingMateriais ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Carregando materiais...</p>
-          </div>
+          <LoadingSpinner message="Carregando materiais..." />
+        ) : errorMateriais ? (
+          <ErrorState message={errorMateriais} onRetry={refreshMateriais} />
         ) : materiais.length === 0 ? (
-          <Card className="p-8 text-center">
-            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground mb-4">Nenhum material cadastrado</p>
-            <Link to="/cadastrar-material">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Cadastrar Primeiro Material
-              </Button>
-            </Link>
-          </Card>
+          <EmptyState
+            icon={Package}
+            title="Nenhum material cadastrado"
+            description="Cadastre o primeiro material para começar as vendas"
+            actionLabel="Cadastrar Primeiro Material"
+            onAction={() => navigate("/cadastrar-material")}
+          />
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {materiais.map((material, index) => (
               <Card 
                 key={material.id} 
-                className="p-4 cursor-pointer bg-card border-white"
+                className="p-4 cursor-pointer bg-card border-white hover:shadow-md transition-shadow"
                 onClick={() => handleMaterialClick(material)}
               >
                 <div className="flex flex-col items-center space-y-3 text-center">
@@ -193,7 +191,7 @@ const Venda = () => {
                       {material.categoria || "Outros"}
                     </p>
                     <p className="font-bold text-success text-sm">
-                      {formatCurrency(material.preco_venda_kg)}/kg
+                      {formatCurrency(material.preco_venda_kg || 0)}/kg
                     </p>
                   </div>
                 </div>
@@ -215,7 +213,7 @@ const Venda = () => {
               <div className="p-3 bg-muted rounded-lg">
                 <h3 className="font-semibold">{selectedMaterial.nome}</h3>
                 <p className="text-sm text-muted-foreground">{selectedMaterial.categoria || "Outros"}</p>
-                <p className="text-sm font-medium">{formatCurrency(selectedMaterial.preco_venda_kg)}/kg</p>
+                <p className="text-sm font-medium">{formatCurrency(selectedMaterial.preco_venda_kg || 0)}/kg</p>
               </div>
 
               <div className="space-y-3">
