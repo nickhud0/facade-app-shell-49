@@ -11,7 +11,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { getSyncIcon, getSyncTooltip, getSyncIconColor } from "@/utils/syncStatus";
 import { formatCurrency, formatDate } from "@/utils/formatters";
-import { useVales } from "@/hooks/useStandardData";
+import { useDataService } from "@/hooks/useDataService";
+import { Vale as ValeType } from "@/services/localDbService";
 import { LoadingSpinner, ErrorState, SummaryCard, PageWrapper, OfflineBanner } from "@/components/ui/loading-states";
 import { NetworkStatus } from "@/components/NetworkStatus";
 
@@ -34,18 +35,20 @@ const Vale = () => {
   const { toast } = useToast();
 
   const {
-    vales,
-    valesPendentes,
-    totalPendente,
-    quantidadePendentes,
+    data: vales,
     loading,
     error,
     isOnline,
     hasData,
-    refreshVales,
-    createVale,
-    updateValeStatus
-  } = useVales();
+    refresh: refreshVales,
+    createItem: createVale,
+    updateItem: updateValeStatus
+  } = useDataService<ValeType>('vales');
+
+  // Calcular derivados
+  const valesPendentes = vales.filter(v => v.status === 'pendente');
+  const totalPendente = valesPendentes.reduce((acc, v) => acc + v.valor, 0);
+  const quantidadePendentes = valesPendentes.length;
 
   const handleSubmit = async () => {
     const cliente = modoSelecao === "novo" ? novoCliente : clienteSelecionado;
@@ -75,7 +78,7 @@ const Vale = () => {
   };
 
   const handleQuitar = async (valeId: number, valeValor: number, valeCliente: string) => {
-    const success = await updateValeStatus(valeId, 'pago');
+    const success = await updateValeStatus(valeId, { status: 'pago' });
     
     if (success) {
       toast({

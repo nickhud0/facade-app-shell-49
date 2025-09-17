@@ -8,7 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useState } from "react";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { formatCurrency, formatDate } from "@/utils/formatters";
-import { useFechamentoData } from "@/hooks/useStandardData";
+import { useFechamentoService } from "@/hooks/useFechamentoService";
 import { LoadingSpinner, ErrorState, SummaryCard, PageWrapper } from "@/components/ui/loading-states";
 
 // Mock histórico - em produção viria do servidor
@@ -47,12 +47,12 @@ const Fechamento = () => {
   const [observacoes, setObservacoes] = useState("");
   
   const { 
-    dadosAtual, 
+    dados: dadosAtual, 
     loading, 
     error, 
-    hasData, 
-    refreshFechamento 
-  } = useFechamentoData();
+    hasData,
+    refresh: refreshFechamento 
+  } = useFechamentoService();
 
   const handleRealizarFechamento = async () => {
     // TODO: Implementar lógica de fechamento

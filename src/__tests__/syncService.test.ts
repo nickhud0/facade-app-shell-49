@@ -1,13 +1,16 @@
 import { syncService } from '../services/syncService';
-import { databaseV2Service } from '../services/databaseV2';
-import { supabaseService } from '../services/supabase';
+import { offlineQueueService } from '../services/offlineQueue';
+import { supabaseService } from '../services/supabaseService';
+import { networkService } from '../services/networkService';
 
 // Mock dos serviços
-jest.mock('../services/databaseV2');
-jest.mock('../services/supabase');
+jest.mock('../services/offlineQueue');
+jest.mock('../services/supabaseService');
+jest.mock('../services/networkService');
 
-const mockDatabaseV2Service = databaseV2Service as jest.Mocked<typeof databaseV2Service>;
+const mockOfflineQueueService = offlineQueueService as jest.Mocked<typeof offlineQueueService>;
 const mockSupabaseService = supabaseService as jest.Mocked<typeof supabaseService>;
+const mockNetworkService = networkService as jest.Mocked<typeof networkService>;
 
 describe('SyncService', () => {
   beforeEach(() => {
@@ -15,102 +18,62 @@ describe('SyncService', () => {
   });
 
   describe('processSyncQueue', () => {
-    it('should process pending sync items successfully', async () => {
-      const mockItems = [
-        {
-          id: 1,
-          tipo_acao: 'criar_comanda',
-          dados: JSON.stringify({ numero: 'CMD001', tipo: 'venda' }),
-          tentativas: 0,
-          status: 'pending' as const,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
-
-      mockDatabaseV2Service.getPendingSyncItems.mockResolvedValue(mockItems);
-      mockDatabaseV2Service.updateSyncItemStatus.mockResolvedValue();
-      mockDatabaseV2Service.clearSyncedItems.mockResolvedValue();
-      
-      // Mock do cliente Supabase
-      mockSupabaseService.client = {
-        from: jest.fn().mockReturnValue({
-          insert: jest.fn().mockResolvedValue({ error: null })
-        })
-      } as any;
+    it('should process sync queue successfully when online', async () => {
+      mockNetworkService.getConnectionStatus.mockReturnValue(true);
+      mockSupabaseService.getConnectionStatus.mockReturnValue(true);
+      mockOfflineQueueService.processQueue.mockResolvedValue({ success: 2, failed: 0 });
 
       const result = await syncService.processSyncQueue();
 
-      expect(result.success).toBe(1);
+      expect(result.success).toBe(2);
       expect(result.failed).toBe(0);
-      expect(mockDatabaseV2Service.updateSyncItemStatus).toHaveBeenCalledWith(1, 'synced');
+      expect(result.errors).toEqual([]);
+      expect(mockOfflineQueueService.processQueue).toHaveBeenCalled();
     });
 
-    it('should handle sync failures with retry logic', async () => {
-      const mockItems = [
-        {
-          id: 1,
-          tipo_acao: 'criar_comanda',
-          dados: JSON.stringify({ numero: 'CMD001' }),
-          tentativas: 0,
-          status: 'pending' as const,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
-
-      mockDatabaseV2Service.getPendingSyncItems.mockResolvedValue(mockItems);
-      mockDatabaseV2Service.updateSyncItemStatus.mockResolvedValue();
-      
-      // Mock falha na sincronização
-      mockSupabaseService.client = {
-        from: jest.fn().mockReturnValue({
-          insert: jest.fn().mockResolvedValue({ error: { message: 'Connection failed' } })
-        })
-      } as any;
+    it('should return error when offline', async () => {
+      mockNetworkService.getConnectionStatus.mockReturnValue(false);
 
       const result = await syncService.processSyncQueue();
 
       expect(result.success).toBe(0);
-      expect(result.failed).toBe(1);
-      expect(mockDatabaseV2Service.updateSyncItemStatus).toHaveBeenCalledWith(1, 'failed');
+      expect(result.failed).toBe(0);
+      expect(result.errors).toContain('No network connection');
     });
 
-    it('should skip items that exceed max retries', async () => {
-      const mockItems = [
-        {
-          id: 1,
-          tipo_acao: 'criar_comanda',
-          dados: JSON.stringify({ numero: 'CMD001' }),
-          tentativas: 6, // Excede o máximo de 5
-          status: 'pending' as const,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
-
-      mockDatabaseV2Service.getPendingSyncItems.mockResolvedValue(mockItems);
-      mockDatabaseV2Service.clearSyncedItems.mockResolvedValue();
+    it('should return error when Supabase not connected', async () => {
+      mockNetworkService.getConnectionStatus.mockReturnValue(true);
+      mockSupabaseService.getConnectionStatus.mockReturnValue(false);
 
       const result = await syncService.processSyncQueue();
 
-      expect(result.errors).toContain('Max retries exceeded for item 1');
-      expect(mockDatabaseV2Service.updateSyncItemStatus).not.toHaveBeenCalled();
+      expect(result.success).toBe(0);
+      expect(result.failed).toBe(0);
+      expect(result.errors).toContain('Supabase not connected');
+    });
+
+    it('should handle partial sync failures', async () => {
+      mockNetworkService.getConnectionStatus.mockReturnValue(true);
+      mockSupabaseService.getConnectionStatus.mockReturnValue(true);
+      mockOfflineQueueService.processQueue.mockResolvedValue({ success: 1, failed: 2 });
+
+      const result = await syncService.processSyncQueue();
+
+      expect(result.success).toBe(1);
+      expect(result.failed).toBe(2);
+      expect(result.errors).toContain('Some items failed to sync');
     });
   });
 
-  describe('backoff logic', () => {
-    it('should calculate next sync attempt correctly', async () => {
-      const item = {
-        tentativas: 2,
-        updated_at: new Date('2023-01-01T10:00:00Z').toISOString()
-      };
+  describe('getQueueStats', () => {
+    it('should return queue statistics', async () => {
+      const mockStats = { pending: 3, failed: 1, total: 4 };
+      mockOfflineQueueService.getQueueStats.mockReturnValue(mockStats);
 
-      const nextAttempt = await syncService.getNextSyncAttempt(item);
-      const expectedDelay = 1000 * Math.pow(2, 2); // 4 segundos
-      const expectedTime = new Date('2023-01-01T10:00:00Z').getTime() + expectedDelay;
+      const stats = await syncService.getQueueStats();
 
-      expect(nextAttempt.getTime()).toBe(expectedTime);
+      expect(stats).toEqual(mockStats);
+      expect(mockOfflineQueueService.getQueueStats).toHaveBeenCalled();
     });
   });
 

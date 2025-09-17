@@ -12,7 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { toYMD } from "@/utils/formatters";
 import { formatCurrency } from "@/utils/formatters";
-import { useMateriais, useTransacoes } from "@/hooks/useStandardData";
+import { useDataService } from "@/hooks/useDataService";
+import { Material, Transacao } from "@/services/localDbService";
 import { LoadingSpinner, ErrorState, EmptyState, PageWrapper } from "@/components/ui/loading-states";
 
 const Compra = () => {
@@ -24,16 +25,19 @@ const Compra = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const materiaisService = useDataService<Material>('materiais');
+  const transacoesService = useDataService<Transacao>('transacoes');
+
   const { 
-    materiais, 
+    data: materiais, 
     loading: loadingMateriais, 
     error: errorMateriais,
     isOnline,
     hasData,
-    refreshMateriais 
-  } = useMateriais();
+    refresh: refreshMateriais
+  } = materiaisService;
 
-  const { createTransacao } = useTransacoes();
+  const { createItem: createTransacao } = transacoesService;
 
   // Verificar se existe uma comanda de venda em andamento
   useEffect(() => {
