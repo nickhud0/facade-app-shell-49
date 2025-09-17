@@ -62,7 +62,19 @@ export default function PrinterManager({ open, onOpenChange, onPrinterConnected 
     setDevices([]);
     
     try {
-      const foundDevices = await ThermalPrinter.listPrinters();
+      // Check permissions first
+      const hasPermission = await thermalPrinterService.requestPermissions();
+      if (!hasPermission) {
+        toast({
+          title: "Permissão negada",
+          description: "Permissão Bluetooth é necessária para buscar impressoras.",
+          variant: "destructive",
+        });
+        setScanning(false);
+        return;
+      }
+
+      const foundDevices = await thermalPrinterService.listPrinters();
       setDevices(foundDevices || []);
       
       if (!foundDevices || foundDevices.length === 0) {
@@ -81,7 +93,7 @@ export default function PrinterManager({ open, onOpenChange, onPrinterConnected 
       logger.debug('Erro ao buscar impressoras:', error);
       toast({
         title: "Erro ao buscar impressoras",
-        description: "Verifique se o Bluetooth está ativado e tente novamente.",
+        description: error instanceof Error ? error.message : "Verifique se o Bluetooth está ativado e tente novamente.",
         variant: "destructive",
       });
     } finally {

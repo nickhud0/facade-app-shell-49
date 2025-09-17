@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { logger } from '@/utils/logger';
 import { notifyError } from '@/utils/errorHandler';
 import { pdfService, ComandaParaPDF } from "@/services/print/pdfService";
-import { gerarPDF } from "@/services/pdfService";
+import { gerarPDF, abrirPDF } from "@/services/pdfService";
 import { thermalPrinterService } from "@/services/thermalPrinterService";
 import { useComandasOffline } from "@/hooks/useComandasOffline";
 import { Comanda } from "@/services/database";
@@ -156,10 +156,15 @@ const ImprimirComanda = () => {
         return;
       }
 
-      const pdf = pdfService.generateComandaPDF(comanda);
-      pdf.save(`comanda-${comanda.numero}.pdf`);
+      toast.loading('Gerando PDF...', { id: 'download-pdf' });
       
-      toast.success('PDF baixado com sucesso!');
+      // Gera e salva o PDF usando o novo serviço
+      const pdfPath = await gerarPDF(comanda);
+      
+      // Abre o PDF no visualizador do sistema
+      await abrirPDF(pdfPath);
+      
+      toast.success('PDF salvo e aberto com sucesso!', { id: 'download-pdf' });
     } catch (error) {
       notifyError(error, 'Baixar PDF');
     }
@@ -196,27 +201,19 @@ const ImprimirComanda = () => {
     }
 
     try {
-      // Check if printer is connected
-      const connected = await thermalPrinterService.isConnected();
-      
-      if (!connected) {
-        toast.error('Impressora não conectada. Configure primeiro.');
-        setShowPrinterManager(true);
-        return;
-      }
+      toast.loading('Verificando impressora...', { id: 'print-comanda' });
 
-      toast.loading('Imprimindo comanda...', { id: 'printer' });
+      // Use the thermal printer service with proper error handling
+      await thermalPrinterService.printComanda(comanda);
       
-      const success = await thermalPrinterService.printComanda(comanda);
-      
-      if (success) {
-        toast.success('Comanda impressa com sucesso!', { id: 'printer' });
-      } else {
-        toast.error('Erro ao imprimir comanda', { id: 'printer' });
-      }
+      toast.success('Comanda impressa com sucesso!', { id: 'print-comanda' });
     } catch (error) {
-      notifyError(error, 'Imprimir Comanda');
-      setShowPrinterManager(true);
+      toast.error('Erro ao imprimir comanda', { id: 'print-comanda' });
+      
+      // If printing fails, offer to open printer manager
+      if (error instanceof Error && error.message.includes('conectar')) {
+        setShowPrinterManager(true);
+      }
     }
   };
 

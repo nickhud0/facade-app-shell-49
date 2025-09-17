@@ -41,6 +41,21 @@ class ThermalPrinterService {
     }).format(value);
   }
 
+  async requestPermissions(): Promise<boolean> {
+    if (!Capacitor.isNativePlatform()) {
+      logger.debug('Permissões Bluetooth só necessárias em dispositivos nativos');
+      return true;
+    }
+
+    try {
+      const result = await ThermalPrinter.requestPermissions();
+      return result.granted || false;
+    } catch (error) {
+      logger.debug('Erro ao solicitar permissões:', error);
+      return false;
+    }
+  }
+
   async connectPrinter(address?: string): Promise<boolean> {
     if (!Capacitor.isNativePlatform()) {
       logger.debug('Impressão térmica só funciona em dispositivos nativos');
@@ -48,6 +63,12 @@ class ThermalPrinterService {
     }
 
     try {
+      // Check permissions first
+      const hasPermission = await this.requestPermissions();
+      if (!hasPermission) {
+        throw new Error('Permissão Bluetooth negada');
+      }
+
       // If specific address provided, connect to it
       if (address) {
         await ThermalPrinter.connect({ name: address });
@@ -71,7 +92,7 @@ class ThermalPrinterService {
       }
 
       // List devices if no saved device or connection failed
-      const printers = await ThermalPrinter.listPrinters();
+      const printers = await this.listPrinters();
       
       if (!printers || printers.length === 0) {
         throw new Error('Nenhuma impressora Bluetooth encontrada');
@@ -162,7 +183,18 @@ class ThermalPrinterService {
   }
 
   async listPrinters(): Promise<any[]> {
+    if (!Capacitor.isNativePlatform()) {
+      logger.debug('Lista de impressoras só funciona em dispositivos nativos');
+      return [];
+    }
+
     try {
+      // Check permissions first
+      const hasPermission = await this.requestPermissions();
+      if (!hasPermission) {
+        throw new Error('Permissão Bluetooth negada');
+      }
+
       const printers = await ThermalPrinter.listPrinters();
       return printers || [];
     } catch (error) {
@@ -173,9 +205,21 @@ class ThermalPrinterService {
 }
 
 export const thermalPrinterService = new ThermalPrinterService();
+
+/**
+ * Função utilitária para imprimir comanda com seleção automática de impressora
+ * @deprecated Use thermalPrinterService.printComanda() em vez desta função
+ */
 export async function imprimirComanda(comanda: any) {
   try {
-    const printers = await ThermalPrinter.listPrinters();
+    // Check permissions first
+    const hasPermission = await thermalPrinterService.requestPermissions();
+    if (!hasPermission) {
+      alert('Permissão Bluetooth negada');
+      return;
+    }
+
+    const printers = await thermalPrinterService.listPrinters();
 
     if (!printers || printers.length === 0) {
       alert('Nenhuma impressora encontrada.');
