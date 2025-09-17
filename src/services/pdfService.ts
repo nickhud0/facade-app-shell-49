@@ -47,15 +47,20 @@ export async function gerarPDF(comanda: ComandaParaPDF): Promise<string> {
 export async function abrirPDF(uri: string): Promise<void> {
   try {
     if (Capacitor.isNativePlatform()) {
-      // No Android/iOS, abre o arquivo com o app padrão
-      const { Browser } = await import('@capacitor/browser');
-      await Browser.open({ url: uri });
+      // No Android/iOS, usa Share para abrir/compartilhar o arquivo
+      const { Share } = await import('@capacitor/share');
+      await Share.share({
+        title: 'Comanda (PDF)',
+        text: 'Abrir ou Compartilhar PDF',
+        url: uri,
+        dialogTitle: 'Abrir/Compartilhar Comanda'
+      });
     } else {
       // Na web, abre em nova aba
       window.open(uri, '_blank');
     }
   } catch (error) {
-    logger.debug('Erro ao abrir PDF:', error);
-    throw new Error('Erro ao abrir PDF');
+    logger.debug('Erro ao abrir/compartilhar PDF:', error);
+    throw new Error('Erro ao abrir/compartilhar PDF');
   }
 }

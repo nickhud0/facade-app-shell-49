@@ -1,9 +1,9 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { ComandaParaPDF } from './print/pdfService';
 import { logger } from '@/utils/logger';
 
 // Import ThermalPrinter plugin
-declare const ThermalPrinter: any;
+const ThermalPrinter = registerPlugin<any>('ThermalPrinter');
 
 class ThermalPrinterService {
   private connected = false;

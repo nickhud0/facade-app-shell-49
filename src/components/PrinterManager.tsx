@@ -7,9 +7,10 @@ import { Bluetooth, CheckCircle, XCircle, AlertCircle, Printer, Scan } from 'luc
 import { toast } from '@/hooks/use-toast';
 import { thermalPrinterService } from '@/services/thermalPrinterService';
 import { logger } from '@/utils/logger';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 
-// Import ThermalPrinter plugin
-declare const ThermalPrinter: any;
+// Import ThermalPrinter plugin for direct usage
+const ThermalPrinter = registerPlugin<any>('ThermalPrinter');
 
 interface BluetoothDevice {
   name: string;
