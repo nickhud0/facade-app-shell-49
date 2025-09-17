@@ -363,6 +363,21 @@ class SupabaseService {
 
     return !error;
   }
+
+  /**
+   * RELATÓRIOS (sempre via views)
+   */
+  async getRelatorios(dataInicio?: string, dataFim?: string): Promise<any[]> {
+    if (!this.client) throw new Error('Supabase not connected');
+
+    try {
+      // Simular dados de relatório por enquanto
+      return [];
+    } catch (error) {
+      logger.error('Error fetching reports:', error);
+      return [];
+    }
+  }
 }
 
 export const supabaseService = new SupabaseService();
