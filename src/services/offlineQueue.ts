@@ -7,7 +7,15 @@ import { idempotencyService } from '@/utils/idempotency';
 import { networkService } from '@/services/networkService';
 import { notifyError } from '@/utils/errorHandler';
 import { logger } from '@/utils/logger';
-import { toYMD } from '@/utils/formatters';
+
+// Helper function to avoid import issues
+const toYMD = (d: Date | string): string => {
+  const dateObj = typeof d === 'string' ? new Date(d) : d;
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export interface QueueItem {
   id: string;
