@@ -1,5 +1,6 @@
 /**
  * Fila offline robusta com retry exponencial e idempotência
+ * Versão 2.0 - sem dependências de formatters
  */
 
 import { supabaseService } from '@/services/supabase';
@@ -8,8 +9,8 @@ import { networkService } from '@/services/networkService';
 import { notifyError } from '@/utils/errorHandler';
 import { logger } from '@/utils/logger';
 
-// Helper function to avoid import issues
-const toYMD = (d: Date | string): string => {
+// Utility function - avoiding external imports to prevent loading issues
+const formatDateToYMD = (d: Date | string): string => {
   const dateObj = typeof d === 'string' ? new Date(d) : d;
   const year = dateObj.getFullYear();
   const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -56,7 +57,7 @@ class OfflineQueueService {
       tentativas: 0,
       maxTentativas: 3,
       status: 'pending',
-      created_at: toYMD(new Date())
+      created_at: formatDateToYMD(new Date())
     };
 
     const queue = this.getQueue();
@@ -103,7 +104,7 @@ class OfflineQueueService {
         try {
           item.status = 'processing';
           item.tentativas++;
-          item.last_attempt = toYMD(new Date());
+          item.last_attempt = formatDateToYMD(new Date());
           
           this.updateQueueItem(item);
 
@@ -126,7 +127,7 @@ class OfflineQueueService {
             logger.error(`💀 Item falhou definitivamente após ${item.tentativas} tentativas`);
           } else {
             item.status = 'pending';
-            item.next_retry = toYMD(new Date(Date.now() + this.retryDelays[item.tentativas - 1]));
+            item.next_retry = formatDateToYMD(new Date(Date.now() + this.retryDelays[item.tentativas - 1]));
             logger.debug(`⏰ Reagendado para ${item.next_retry}`);
           }
         }
