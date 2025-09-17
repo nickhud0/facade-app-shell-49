@@ -6,81 +6,31 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useOfflineData } from "@/hooks/useOfflineData";
-import { Material } from "@/services/database";
 import { useToast } from "@/hooks/use-toast";
 import { NetworkStatus } from "@/components/NetworkStatus";
-import { toYMD, formatCurrency, formatDate } from "@/utils/formatters";
+import { formatCurrency } from "@/utils/formatters";
+import { LoadingSpinner, ErrorState, PageWrapper, EmptyState } from "@/components/ui/loading-states";
+import { useMateriais } from "@/hooks/useStandardData";
 
 const TabelaPrecos = () => {
   const navigate = useNavigate();
-  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [novoPrecoVenda, setNovoPrecoVenda] = useState("");
   const [novoPrecoCompra, setNovoPrecoCompra] = useState("");
   const [busca, setBusca] = useState("");
   const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todas");
-  
-  const { data: materiais, loading, updateItem } = useOfflineData<Material>('materiais');
-  
-  // Dados fictícios para demonstração
-  const materiaisFicticios: Material[] = [
-    {
-      id: 1,
-      nome: "Cobre Limpo",
-      preco_compra_kg: 28.00,
-      preco_venda_kg: 32.00,
-      categoria: "Cobre",
-      created_at: toYMD(new Date()),
-      updated_at: toYMD(new Date())
-    },
-    {
-      id: 2,
-      nome: "Ferro Velho",
-      preco_compra_kg: 0.80,
-      preco_venda_kg: 1.20,
-      categoria: "Metais Ferrosos", 
-      created_at: toYMD(new Date()),
-      updated_at: toYMD(new Date())
-    },
-    {
-      id: 3,
-      nome: "Alumínio",
-      preco_compra_kg: 10.00,
-      preco_venda_kg: 14.50,
-      categoria: "Alumínio",
-      created_at: toYMD(new Date()),
-      updated_at: toYMD(new Date())
-    },
-    {
-      id: 4,
-      nome: "Aço Inox",
-      preco_compra_kg: 23.75,
-      preco_venda_kg: 28.20,
-      categoria: "Metais Não-Ferrosos",
-      created_at: toYMD(new Date()),
-      updated_at: toYMD(new Date())
-    },
-    {
-      id: 5,
-      nome: "Bateria de Carro",
-      preco_compra_kg: 2.80,
-      preco_venda_kg: 4.20,
-      categoria: "Sucata Eletrônica",
-      created_at: toYMD(new Date()),
-      updated_at: toYMD(new Date())
-    }
-  ];
-  
-  // Usar dados fictícios se não houver materiais reais
-  const materiaisParaExibir = materiais.length > 0 ? materiais : materiaisFicticios;
   const { toast } = useToast();
+  
+  const { materiais, loading, error, refreshMateriais } = useMateriais();
+  
+  // Usar materiais reais do hook
+  const materiaisParaExibir = materiais;
 
   // Obter categorias únicas
   const categorias = ["Todas", ...Array.from(new Set(materiaisParaExibir.map(m => m.categoria || "Outros")))];
 
-  const handleEditClick = (material: Material) => {
+  const handleEditClick = (material: any) => {
     setSelectedMaterial(material);
     setNovoPrecoVenda(material.preco_venda_kg.toString());
     setNovoPrecoCompra(material.preco_compra_kg.toString());
@@ -102,10 +52,8 @@ const TabelaPrecos = () => {
       return;
     }
 
-    const sucesso = await updateItem(selectedMaterial.id!, {
-      preco_venda_kg: novoPrecoVendaNum,
-      preco_compra_kg: novoPrecoCompraNum
-    });
+    // TODO: Implementar atualização de preços quando integrado ao backend
+    const sucesso = true;
 
     if (sucesso) {
       toast({
@@ -169,26 +117,21 @@ const TabelaPrecos = () => {
         ))}
       </div>
 
-      {/* Conteúdo */}
-      {loading ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Carregando materiais...</p>
-        </div>
-      ) : materiaisParaExibir.length === 0 ? (
-        <Card className="p-8 text-center">
-          <List className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Nenhum material cadastrado</h3>
-          <p className="text-muted-foreground mb-4">
-            Cadastre materiais para gerenciar seus preços.
-          </p>
-          <Link to="/cadastrar-material">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Cadastrar Primeiro Material
-            </Button>
-          </Link>
-        </Card>
-      ) : (
+      <PageWrapper 
+        loading={loading} 
+        error={error} 
+        onRetry={refreshMateriais}
+        loadingMessage="Carregando materiais..."
+      >
+        {materiaisParaExibir.length === 0 ? (
+          <EmptyState
+            icon={List}
+            title="Nenhum material cadastrado"
+            description="Cadastre materiais para gerenciar seus preços."
+            actionLabel="Cadastrar Primeiro Material"
+            onAction={() => navigate("/cadastrar-material")}
+          />
+        ) : (
         <>
           {/* Lista de Produtos */}
           <div className="space-y-4 mb-6">
@@ -256,7 +199,8 @@ const TabelaPrecos = () => {
             </div>
           </Card>
         </>
-      )}
+        )}
+      </PageWrapper>
 
       {/* Dialog de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

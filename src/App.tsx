@@ -21,11 +21,14 @@ import ImprimirComanda from "./pages/ImprimirComanda";
 
 const queryClient = new QueryClient();
 
+import { ErrorBoundary } from "./components/ErrorBoundary";
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppInitializer>
-        <BrowserRouter>
+      <ErrorBoundary>
+        <AppInitializer>
+          <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/compra" element={<Compra />} />
@@ -48,6 +51,7 @@ const App = () => {
           </Routes>
         </BrowserRouter>
       </AppInitializer>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 };

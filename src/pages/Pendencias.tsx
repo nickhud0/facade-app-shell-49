@@ -1,5 +1,5 @@
 import { ArrowLeft, AlertCircle, Plus, CreditCard, Edit } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -12,8 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { getSyncIcon, getSyncTooltip, getSyncIconColor } from "@/utils/syncStatus";
-
 import { formatCurrency } from "@/utils/formatters";
+import { LoadingSpinner, ErrorState, PageWrapper, EmptyState } from "@/components/ui/loading-states";
 
 // Dados mock para pendências
 const pendenciasIniciais = [
