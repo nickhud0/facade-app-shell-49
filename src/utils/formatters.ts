@@ -50,9 +50,6 @@ export function toYMD(d: Date | string): string {
   return `${year}-${month}-${day}`;
 }
 
-// Export alias to ensure compatibility
-export const convertToYMD = toYMD;
-
 // Converter data para formato YYYY-MM-DD (para queries) - deprecated, use toYMD()
 export const toDateString = (date: Date): string => {
   return toYMD(date);
@@ -70,4 +67,20 @@ export const getYearStart = (): string => {
   const date = new Date();
   date.setMonth(0, 1);
   return toDateString(date);
+};
+
+// Named exports for compatibility
+export { toYMD as convertToYMD };
+
+// Default export with all utilities
+export default {
+  formatCurrency,
+  formatDate,
+  formatDateTime,
+  formatNumber,
+  formatWeight,
+  toYMD,
+  toDateString,
+  getMonthStart,
+  getYearStart
 };
