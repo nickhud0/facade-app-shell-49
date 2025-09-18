@@ -120,9 +120,9 @@ class SupabaseService {
     return (data || []).map(vale => ({
       id: vale.id,
       valor: vale.valor || 0,
-      descricao: vale.cliente_nome || vale.numero || 'Vale',
-      status: vale.status === 'quitado' ? 'pago' : 'pendente',
-      created_at: vale.data
+      descricao: vale.cliente_nome ?? vale.numero ?? String(vale.id ?? 'Vale'),
+      status: vale.status?.toLowerCase() === 'quitado' ? 'pago' : 'pendente',
+      created_at: vale.data ?? vale.created_at ?? new Date().toISOString()
     }));
   }
 
@@ -160,11 +160,11 @@ class SupabaseService {
           material_id: item.material_id,
           material_nome: item.material_nome,
           categoria: item.categoria,
-          kg_comprado: item.kg_comprado || 0,
-          kg_vendido: item.kg_vendido || 0,
-          kg_disponivel: item.kg_disponivel || 0,
-          valor_medio_compra: item.valor_medio_compra || 0,
-          valor_total_estoque: item.valor_total_estoque || 0
+          kg_comprado: Number.isFinite(item.kg_comprado) ? item.kg_comprado : 0,
+          kg_vendido: Number.isFinite(item.kg_vendido) ? item.kg_vendido : 0,
+          kg_disponivel: Number.isFinite(item.kg_disponivel) ? item.kg_disponivel : 0,
+          valor_medio_compra: Number.isFinite(item.valor_medio_compra) ? item.valor_medio_compra : 0,
+          valor_total_estoque: Number.isFinite(item.valor_total_estoque) ? item.valor_total_estoque : 0
         }));
 
         const resumo = {

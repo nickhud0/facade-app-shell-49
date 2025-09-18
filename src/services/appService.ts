@@ -4,6 +4,13 @@ import { networkService } from './networkService';
 import { initializeSampleData } from '@/utils/sampleData';
 import { logger } from '@/utils/logger';
 
+function withTimeout<T>(p: Promise<T>, ms = 2500): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))
+  ]);
+}
+
 class AppService {
   private initialized = false;
 
@@ -74,11 +81,11 @@ class AppService {
           anonKey: supabaseKey
         };
 
-        const connected = await supabaseService.initialize(config);
+        const connected = await withTimeout(supabaseService.initialize(config), 2000).catch(() => false);
         
         if (connected && networkService.getConnectionStatus()) {
           // Se conectou e está online, sincronizar dados
-          await supabaseService.syncAllData();
+          void supabaseService.syncAllData().catch(console.warn); // dispara sem bloquear a UI
           logger.info('✓ Supabase connected and data synced');
         } else if (connected) {
           logger.info('✓ Supabase connected (offline mode)');

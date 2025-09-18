@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, BrowserRouter, Routes, Route } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 import { AppInitializer } from "./components/AppInitializer";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -23,12 +24,14 @@ const queryClient = new QueryClient();
 
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
+const Router = Capacitor.isNativePlatform() ? HashRouter : BrowserRouter;
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <AppInitializer>
-          <BrowserRouter>
+          <Router>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/compra" element={<Compra />} />
@@ -49,7 +52,7 @@ const App = () => {
             <Route path="/imprimir-comanda/:comandaId" element={<ImprimirComanda />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
+        </Router>
       </AppInitializer>
       </ErrorBoundary>
     </QueryClientProvider>
