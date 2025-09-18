@@ -42,13 +42,13 @@ export const formatWeight = (value: number): string => {
 };
 
 // Converter data para formato YYYY-MM-DD (para queries) sem problemas de fuso horário
-export function toYMD(d: Date | string): string {
+export const toYMD = (d: Date | string): string => {
   const dateObj = typeof d === 'string' ? new Date(d) : d;
   const year = dateObj.getFullYear();
   const month = String(dateObj.getMonth() + 1).padStart(2, '0');
   const day = String(dateObj.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
-}
+};
 
 // Converter data para formato YYYY-MM-DD (para queries) - deprecated, use toYMD()
 export const toDateString = (date: Date): string => {
