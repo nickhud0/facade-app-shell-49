@@ -8,55 +8,28 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useState } from "react";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { formatCurrency, formatDate } from "@/utils/formatters";
-import { useFechamentoService } from "@/hooks/useFechamentoService";
+import { useFechamento } from "@/hooks/useFechamento";
 import { LoadingSpinner, ErrorState, SummaryCard, PageWrapper } from "@/components/ui/loading-states";
-
-// Mock histórico - em produção viria do servidor
-const historicoFechamentos = [
-  {
-    id: 1,
-    data: "28/02/2025",
-    receitas: 1850.30,
-    compras: 750.00,
-    despesas: 120.00,
-    lucro: 980.30,
-    observacoes: "Vendas normais para o período"
-  },
-  {
-    id: 2,
-    data: "27/02/2025",
-    receitas: 2200.80,
-    compras: 900.00,
-    despesas: 180.00,
-    lucro: 1120.80,
-    observacoes: "Fim de semana com movimento intenso"
-  },
-  {
-    id: 3,
-    data: "26/02/2025",
-    receitas: 1680.50,
-    compras: 650.00,
-    despesas: 95.00,
-    lucro: 935.50,
-    observacoes: ""
-  }
-];
 
 const Fechamento = () => {
   const navigate = useNavigate();
   const [observacoes, setObservacoes] = useState("");
   
   const { 
-    dados: dadosAtual, 
+    dados, 
+    historico,
     loading, 
     error, 
-    hasData,
-    refresh: refreshFechamento 
-  } = useFechamentoService();
+    isOnline,
+    realizarFechamento,
+    refresh 
+  } = useFechamento();
 
   const handleRealizarFechamento = async () => {
-    // TODO: Implementar lógica de fechamento
-    console.log('Realizando fechamento com observações:', observacoes);
+    const success = await realizarFechamento(observacoes);
+    if (success) {
+      setObservacoes("");
+    }
   };
 
   return (
@@ -75,7 +48,7 @@ const Fechamento = () => {
       <PageWrapper 
         loading={loading} 
         error={error} 
-        onRetry={refreshFechamento}
+        onRetry={refresh}
         loadingMessage="Carregando dados de fechamento..."
       >
         {/* Período Atual */}
@@ -88,7 +61,7 @@ const Fechamento = () => {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-6">
-              Último fechamento: {dadosAtual.ultimoFechamento}
+              Último fechamento: {dados.ultimoFechamento}
             </p>
 
             {/* Valores Consolidados */}
@@ -97,14 +70,14 @@ const Fechamento = () => {
                 <div className="flex justify-between items-center p-3 rounded-lg bg-success/10">
                   <span className="font-medium">Receitas (Vendas)</span>
                   <span className="font-bold text-lg text-success">
-                    {formatCurrency(dadosAtual.receitas)}
+                    {formatCurrency(dados.receitas)}
                   </span>
                 </div>
                 
                 <div className="flex justify-between items-center p-3 rounded-lg bg-destructive/10">
                   <span className="font-medium">Compras</span>
                   <span className="font-bold text-lg text-destructive">
-                    {formatCurrency(dadosAtual.compras)}
+                    {formatCurrency(dados.compras)}
                   </span>
                 </div>
               </div>
@@ -113,14 +86,14 @@ const Fechamento = () => {
                 <div className="flex justify-between items-center p-3 rounded-lg bg-destructive/10">
                   <span className="font-medium">Despesas</span>
                   <span className="font-bold text-lg text-destructive">
-                    {formatCurrency(dadosAtual.despesas)}
+                    {formatCurrency(dados.despesas)}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center p-3 rounded-lg bg-primary/10">
                   <span className="font-medium">Lucro Atual</span>
                   <span className="font-bold text-lg text-primary">
-                    {formatCurrency(dadosAtual.lucroAtual)}
+                    {formatCurrency(dados.lucroAtual)}
                   </span>
                 </div>
               </div>
@@ -143,6 +116,7 @@ const Fechamento = () => {
             <Button 
               className="w-full h-12"
               onClick={handleRealizarFechamento}
+              disabled={loading}
             >
               <Calculator className="mr-2 h-5 w-5" />
               Realizar Fechamento
@@ -156,77 +130,90 @@ const Fechamento = () => {
             <CardTitle className="flex items-center">
               <FileText className="mr-2 h-5 w-5" />
               Histórico de Fechamentos
+              {!isOnline && (
+                <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                  Offline
+                </span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Accordion type="single" collapsible className="w-full">
-              {historicoFechamentos.map((fechamento) => (
-                <AccordionItem 
-                  key={fechamento.id} 
-                  value={`item-${fechamento.id}`}
-                  className="border-b"
-                >
-                  <AccordionTrigger className="flex justify-between items-center py-4 hover:no-underline">
-                    <div className="flex justify-between items-center w-full mr-4">
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium text-base">{formatDate(fechamento.data)}</span>
-                        <span className="text-sm text-muted-foreground">
-                          Lucro: {formatCurrency(fechamento.lucro)}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-sm text-success font-medium">
-                          {formatCurrency(fechamento.receitas)}
-                        </span>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-4">
-                    <div className="space-y-3 animate-fade-in">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Receitas:</span>
-                            <span className="text-sm font-medium text-success">
-                              {formatCurrency(fechamento.receitas)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Compras:</span>
-                            <span className="text-sm font-medium text-destructive">
-                              {formatCurrency(fechamento.compras)}
-                            </span>
-                          </div>
+            {historico.length > 0 ? (
+              <Accordion type="single" collapsible className="w-full">
+                {historico.map((fechamento) => (
+                  <AccordionItem 
+                    key={fechamento.id} 
+                    value={`item-${fechamento.id}`}
+                    className="border-b"
+                  >
+                    <AccordionTrigger className="flex justify-between items-center py-4 hover:no-underline">
+                      <div className="flex justify-between items-center w-full mr-4">
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium text-base">{fechamento.data}</span>
+                          <span className="text-sm text-muted-foreground">
+                            Lucro: {formatCurrency(fechamento.lucro)}
+                          </span>
                         </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Despesas:</span>
-                            <span className="text-sm font-medium text-destructive">
-                              {formatCurrency(fechamento.despesas)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Lucro:</span>
-                            <span className="text-sm font-semibold text-primary">
-                              {formatCurrency(fechamento.lucro)}
-                            </span>
-                          </div>
+                        <div className="text-right">
+                          <span className="text-sm text-success font-medium">
+                            {formatCurrency(fechamento.receitas)}
+                          </span>
                         </div>
                       </div>
-                      {fechamento.observacoes && (
-                        <>
-                          <Separator className="my-3" />
-                          <div>
-                            <span className="text-sm text-muted-foreground block mb-1">Observações:</span>
-                            <p className="text-sm">{fechamento.observacoes}</p>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className="space-y-3 animate-fade-in">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-muted-foreground">Receitas:</span>
+                              <span className="text-sm font-medium text-success">
+                                {formatCurrency(fechamento.receitas)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-muted-foreground">Compras:</span>
+                              <span className="text-sm font-medium text-destructive">
+                                {formatCurrency(fechamento.compras)}
+                              </span>
+                            </div>
                           </div>
-                        </>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-muted-foreground">Despesas:</span>
+                              <span className="text-sm font-medium text-destructive">
+                                {formatCurrency(fechamento.despesas)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-muted-foreground">Lucro:</span>
+                              <span className="text-sm font-semibold text-primary">
+                                {formatCurrency(fechamento.lucro)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        {fechamento.observacoes && (
+                          <>
+                            <Separator className="my-3" />
+                            <div>
+                              <span className="text-sm text-muted-foreground block mb-1">Observações:</span>
+                              <p className="text-sm">{fechamento.observacoes}</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <FileText className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                <p>Nenhum fechamento encontrado</p>
+                <p className="text-sm">Realize o primeiro fechamento para ver o histórico</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </PageWrapper>
