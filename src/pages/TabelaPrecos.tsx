@@ -28,7 +28,7 @@ const TabelaPrecos = () => {
   const materiaisParaExibir = materiais;
 
   // Obter categorias únicas
-  const categorias = ["Todas", ...Array.from(new Set(materiaisParaExibir.map(m => m.categoria || "Outros")))];
+  const categorias: string[] = ["Todas", ...Array.from(new Set(materiaisParaExibir.map(m => m.categoria || "Outros")))];
 
   const handleEditClick = (material: any) => {
     setSelectedMaterial(material);

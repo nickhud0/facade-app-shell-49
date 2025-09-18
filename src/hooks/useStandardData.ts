@@ -4,49 +4,25 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { dataService, DataLoadResult } from '@/services/dataService';
 import { Material, Transacao, Vale, Despesa } from '@/services/database';
+import { useDataService } from '@/hooks/useDataService';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
 
 /**
  * Hook padrão para materiais
  */
 export function useMateriais() {
-  const [result, setResult] = useState<DataLoadResult<Material>>({
-    data: [],
-    loading: true,
-    error: null,
-    isOnline: false,
-    hasData: false
-  });
+  const { data, loading, error, isOnline, hasData, refresh, createItem } = useDataService<Material>('materiais');
   const { toast } = useToast();
 
-  const loadData = useCallback(async () => {
-    setResult(prev => ({ ...prev, loading: true, error: null }));
-    
-    try {
-      const newResult = await dataService.loadMateriais();
-      setResult(newResult);
-    } catch (error) {
-      setResult(prev => ({ 
-        ...prev, 
-        loading: false, 
-        error: 'Erro ao carregar materiais' 
-      }));
-      logger.error('Error loading materiais:', error);
-    }
-  }, []);
-
   const createMaterial = useCallback(async (material: Omit<Material, 'id'>) => {
-    const success = await dataService.createMaterial(material);
+    const success = await createItem(material);
     
     if (success) {
       toast({
         title: "Material cadastrado",
-        description: result.isOnline ? "Salvo no servidor" : "Será sincronizado quando conectar"
+        description: isOnline ? "Salvo no servidor" : "Será sincronizado quando conectar"
       });
-      await loadData(); // Recarregar lista
     } else {
       toast({
         title: "Erro",
@@ -56,19 +32,15 @@ export function useMateriais() {
     }
     
     return success;
-  }, [result.isOnline, toast, loadData]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  }, [isOnline, toast, createItem]);
 
   return {
-    materiais: result.data,
-    loading: result.loading,
-    error: result.error,
-    isOnline: result.isOnline,
-    hasData: result.hasData,
-    refreshMateriais: loadData,
+    materiais: data,
+    loading,
+    error,
+    isOnline,
+    hasData,
+    refreshMateriais: refresh,
     createMaterial
   };
 }
@@ -77,40 +49,17 @@ export function useMateriais() {
  * Hook padrão para transações (histórico compra/venda)
  */
 export function useTransacoes(limit = 50) {
-  const [result, setResult] = useState<DataLoadResult<Transacao>>({
-    data: [],
-    loading: true,
-    error: null,
-    isOnline: false,
-    hasData: false
-  });
+  const { data, loading, error, isOnline, hasData, refresh, createItem } = useDataService<Transacao>('transacoes');
   const { toast } = useToast();
 
-  const loadData = useCallback(async () => {
-    setResult(prev => ({ ...prev, loading: true, error: null }));
-    
-    try {
-      const newResult = await dataService.loadTransacoes(limit);
-      setResult(newResult);
-    } catch (error) {
-      setResult(prev => ({ 
-        ...prev, 
-        loading: false, 
-        error: 'Erro ao carregar transações' 
-      }));
-      logger.error('Error loading transacoes:', error);
-    }
-  }, [limit]);
-
   const createTransacao = useCallback(async (transacao: Omit<Transacao, 'id'>) => {
-    const success = await dataService.createTransacao(transacao);
+    const success = await createItem(transacao);
     
     if (success) {
       toast({
         title: "Transação registrada",
-        description: result.isOnline ? "Salva no servidor" : "Será sincronizada quando conectar"
+        description: isOnline ? "Salva no servidor" : "Será sincronizada quando conectar"
       });
-      await loadData(); // Recarregar lista
     } else {
       toast({
         title: "Erro",
@@ -120,19 +69,15 @@ export function useTransacoes(limit = 50) {
     }
     
     return success;
-  }, [result.isOnline, toast, loadData]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  }, [isOnline, toast, createItem]);
 
   return {
-    transacoes: result.data,
-    loading: result.loading,
-    error: result.error,
-    isOnline: result.isOnline,
-    hasData: result.hasData,
-    refreshTransacoes: loadData,
+    transacoes: data,
+    loading,
+    error,
+    isOnline,
+    hasData,
+    refreshTransacoes: refresh,
     createTransacao
   };
 }
@@ -141,40 +86,17 @@ export function useTransacoes(limit = 50) {
  * Hook padrão para vales
  */
 export function useVales() {
-  const [result, setResult] = useState<DataLoadResult<Vale>>({
-    data: [],
-    loading: true,
-    error: null,
-    isOnline: false,
-    hasData: false
-  });
+  const { data, loading, error, isOnline, hasData, refresh, createItem, updateItem } = useDataService<Vale>('vales');
   const { toast } = useToast();
 
-  const loadData = useCallback(async () => {
-    setResult(prev => ({ ...prev, loading: true, error: null }));
-    
-    try {
-      const newResult = await dataService.loadVales();
-      setResult(newResult);
-    } catch (error) {
-      setResult(prev => ({ 
-        ...prev, 
-        loading: false, 
-        error: 'Erro ao carregar vales' 
-      }));
-      logger.error('Error loading vales:', error);
-    }
-  }, []);
-
   const createVale = useCallback(async (vale: Omit<Vale, 'id'>) => {
-    const success = await dataService.createVale(vale);
+    const success = await createItem(vale);
     
     if (success) {
       toast({
         title: "Vale cadastrado",
-        description: result.isOnline ? "Salvo no servidor" : "Será sincronizado quando conectar"
+        description: isOnline ? "Salvo no servidor" : "Será sincronizado quando conectar"
       });
-      await loadData(); // Recarregar lista
     } else {
       toast({
         title: "Erro",
@@ -184,17 +106,16 @@ export function useVales() {
     }
     
     return success;
-  }, [result.isOnline, toast, loadData]);
+  }, [isOnline, toast, createItem]);
 
   const updateValeStatus = useCallback(async (id: number, status: Vale['status']) => {
-    const success = await dataService.updateValeStatus(id, status);
+    const success = await updateItem(id, { status });
     
     if (success) {
       toast({
         title: "Vale atualizado",
         description: `Status alterado para: ${status}`
       });
-      await loadData(); // Recarregar lista
     } else {
       toast({
         title: "Erro",
@@ -204,26 +125,22 @@ export function useVales() {
     }
     
     return success;
-  }, [toast, loadData]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  }, [toast, updateItem]);
 
   // Calcular vales pendentes
-  const valesPendentes = result.data.filter(vale => vale.status === 'pendente');
+  const valesPendentes = data.filter(vale => vale.status === 'pendente');
   const totalPendente = valesPendentes.reduce((acc, vale) => acc + vale.valor, 0);
 
   return {
-    vales: result.data,
+    vales: data,
     valesPendentes,
     totalPendente,
     quantidadePendentes: valesPendentes.length,
-    loading: result.loading,
-    error: result.error,
-    isOnline: result.isOnline,
-    hasData: result.hasData,
-    refreshVales: loadData,
+    loading,
+    error,
+    isOnline,
+    hasData,
+    refreshVales: refresh,
     createVale,
     updateValeStatus
   };
@@ -233,40 +150,17 @@ export function useVales() {
  * Hook padrão para despesas
  */
 export function useDespesas() {
-  const [result, setResult] = useState<DataLoadResult<Despesa>>({
-    data: [],
-    loading: true,
-    error: null,
-    isOnline: false,
-    hasData: false
-  });
+  const { data, loading, error, isOnline, hasData, refresh, createItem } = useDataService<Despesa>('despesas');
   const { toast } = useToast();
 
-  const loadData = useCallback(async () => {
-    setResult(prev => ({ ...prev, loading: true, error: null }));
-    
-    try {
-      const newResult = await dataService.loadDespesas();
-      setResult(newResult);
-    } catch (error) {
-      setResult(prev => ({ 
-        ...prev, 
-        loading: false, 
-        error: 'Erro ao carregar despesas' 
-      }));
-      logger.error('Error loading despesas:', error);
-    }
-  }, []);
-
   const createDespesa = useCallback(async (despesa: Omit<Despesa, 'id'>) => {
-    const success = await dataService.createDespesa(despesa);
+    const success = await createItem(despesa);
     
     if (success) {
       toast({
         title: "Despesa cadastrada",
-        description: result.isOnline ? "Salva no servidor" : "Será sincronizada quando conectar"
+        description: isOnline ? "Salva no servidor" : "Será sincronizada quando conectar"
       });
-      await loadData(); // Recarregar lista
     } else {
       toast({
         title: "Erro",
@@ -276,165 +170,15 @@ export function useDespesas() {
     }
     
     return success;
-  }, [result.isOnline, toast, loadData]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  }, [isOnline, toast, createItem]);
 
   return {
-    despesas: result.data,
-    loading: result.loading,
-    error: result.error,
-    isOnline: result.isOnline,
-    hasData: result.hasData,
-    refreshDespesas: loadData,
-    createDespesa
-  };
-}
-
-/**
- * Hook padrão para estoque
- */
-export function useEstoque() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [itensEstoque, setItensEstoque] = useState<any[]>([]);
-  const [resumoEstoque, setResumoEstoque] = useState<any>({ totalKg: 0, totalTipos: 0, valorTotal: 0 });
-  const [isOnline, setIsOnline] = useState(false);
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const result = await dataService.loadEstoque();
-      setItensEstoque(result.itens);
-      setResumoEstoque(result.resumo);
-      setIsOnline(result.isOnline);
-      setError(result.error);
-    } catch (error) {
-      setError('Erro ao carregar estoque');
-      logger.error('Error loading estoque:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  return {
-    itensEstoque,
-    resumoEstoque,
+    despesas: data,
     loading,
     error,
     isOnline,
-    hasData: itensEstoque.length > 0,
-    refreshEstoque: loadData
-  };
-}
-
-/**
- * Hook padrão para fechamento
- */
-export function useFechamentoData() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [dadosAtual, setDadosAtual] = useState({
-    ultimoFechamento: new Date().toLocaleDateString('pt-BR'),
-    receitas: 0,
-    compras: 0,
-    despesas: 0,
-    lucroAtual: 0
-  });
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const result = await dataService.loadFechamento();
-      setDadosAtual(result.dados);
-      setError(result.error);
-    } catch (error) {
-      setError('Erro ao carregar dados de fechamento');
-      logger.error('Error loading fechamento:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  return {
-    dadosAtual,
-    loading,
-    error,
-    hasData: dadosAtual.receitas > 0 || dadosAtual.compras > 0,
-    refreshFechamento: loadData
-  };
-}
-
-/**
- * Hook para monitorar fila de sincronização
- */
-export function useSyncStatus() {
-  const [stats, setStats] = useState({ pending: 0, failed: 0, total: 0 });
-  const [syncing, setSyncing] = useState(false);
-  const { toast } = useToast();
-
-  const refreshStats = useCallback(() => {
-    const newStats = dataService.getQueueStats();
-    setStats(newStats);
-  }, []);
-
-  const forceSync = useCallback(async () => {
-    setSyncing(true);
-    
-    try {
-      const result = await dataService.forcSync();
-      
-      if (result.success > 0) {
-        toast({
-          title: "Sincronização concluída",
-          description: `${result.success} itens sincronizados`
-        });
-      }
-      
-      if (result.failed > 0) {
-        toast({
-          title: "Sincronização parcial",
-          description: `${result.failed} itens falharam`,
-          variant: "destructive"
-        });
-      }
-      
-      refreshStats();
-    } catch (error) {
-      toast({
-        title: "Erro na sincronização",
-        description: "Falha ao sincronizar dados",
-        variant: "destructive"
-      });
-    } finally {
-      setSyncing(false);
-    }
-  }, [toast, refreshStats]);
-
-  useEffect(() => {
-    refreshStats();
-    const interval = setInterval(refreshStats, 5000); // Atualizar a cada 5s
-    return () => clearInterval(interval);
-  }, [refreshStats]);
-
-  return {
-    stats,
-    syncing,
-    forceSync,
-    refreshStats
+    hasData,
+    refreshDespesas: refresh,
+    createDespesa
   };
 }
