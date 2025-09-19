@@ -18,7 +18,6 @@ import {
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SyncStatusIndicator } from "@/components/SyncStatusIndicator";
 import { NetworkStatus } from "@/components/NetworkStatus";
 
 const menuItems = [
@@ -53,7 +52,6 @@ const Index = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <SyncStatusIndicator />
             <NetworkStatus />
           </div>
         </div>
