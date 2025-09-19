@@ -1,6 +1,7 @@
-import { databaseService } from './database';
+import { offlineStorage } from './offlineStorage';
 import { supabaseService, SupabaseConfig } from './supabase';
 import { networkService } from './networkService';
+import { unifiedSyncService } from './unifiedSyncService';
 import { initializeSampleData } from '@/utils/sampleData';
 import { logger } from '@/utils/logger';
 
@@ -20,13 +21,8 @@ class AppService {
     try {
       logger.info('Initializing app services...');
 
-      // 1. Inicializar banco local SQLite
-      try {
-        await databaseService.initializeDatabase();
-        logger.info('✓ SQLite database initialized');
-      } catch (dbError) {
-        console.warn('⚠ SQLite initialization failed, using localStorage:', dbError);
-      }
+      // 1. Offline storage (localStorage - sempre funciona)
+      logger.info('✓ Offline storage ready');
 
       // 2. Inicializar serviço de rede
       try {
@@ -36,7 +32,11 @@ class AppService {
         console.warn('⚠ Network service initialization failed:', networkError);
       }
 
-      // 3. Inicializar dados de exemplo para testes locais
+      // 3. Inicializar sincronização unificada
+      unifiedSyncService.initialize();
+      logger.info('✓ Unified sync service initialized');
+
+      // 4. Inicializar dados de exemplo para testes locais
       try {
         await initializeSampleData();
         logger.info('✓ Sample data checked/initialized');
@@ -44,11 +44,11 @@ class AppService {
         console.warn('⚠ Sample data initialization failed:', sampleError);
       }
 
-      // 4. Tentar conectar ao Supabase se credenciais existirem
+      // 5. Tentar conectar ao Supabase se credenciais existirem
       try {
         await this.tryConnectSupabase();
         
-        // 5. Se Supabase conectado, sincronizar dados essenciais (materiais)
+        // 6. Se Supabase conectado, sincronizar dados essenciais
         if (supabaseService.getConnectionStatus() && networkService.getConnectionStatus()) {
           try {
             await this.syncEssentialData();
@@ -72,8 +72,8 @@ class AppService {
 
   private async tryConnectSupabase(): Promise<void> {
     try {
-      const supabaseUrl = await databaseService.getConfig('supabase_url');
-      const supabaseKey = await databaseService.getConfig('supabase_anon_key');
+      const supabaseUrl = localStorage.getItem('config_supabase_url');
+      const supabaseKey = localStorage.getItem('config_supabase_anon_key');
 
       if (supabaseUrl && supabaseKey) {
         const config: SupabaseConfig = {
@@ -84,9 +84,9 @@ class AppService {
         const connected = await withTimeout(supabaseService.initialize(config), 2000).catch(() => false);
         
         if (connected && networkService.getConnectionStatus()) {
-          // Se conectou e está online, sincronizar dados
-          void supabaseService.syncAllData().catch(console.warn); // dispara sem bloquear a UI
-          logger.info('✓ Supabase connected and data synced');
+          // Se conectou e está online, processar fila de sync
+          void unifiedSyncService.processQueue().catch(console.warn);
+          logger.info('✓ Supabase connected and sync started');
         } else if (connected) {
           logger.info('✓ Supabase connected (offline mode)');
         } else {
@@ -115,17 +115,17 @@ class AppService {
 
   async saveSupabaseCredentials(url: string, anonKey: string): Promise<boolean> {
     try {
-      // Salvar credenciais no banco local
-      await databaseService.setConfig('supabase_url', url);
-      await databaseService.setConfig('supabase_anon_key', anonKey);
+      // Salvar credenciais no localStorage
+      localStorage.setItem('config_supabase_url', url);
+      localStorage.setItem('config_supabase_anon_key', anonKey);
 
       // Tentar conectar com as novas credenciais
       const config: SupabaseConfig = { url, anonKey };
       const connected = await supabaseService.initialize(config);
 
       if (connected && networkService.getConnectionStatus()) {
-        // Se conectou e está online, sincronizar dados
-        await supabaseService.syncAllData();
+        // Se conectou e está online, processar fila de sync
+        await unifiedSyncService.processQueue();
       }
 
       return connected;
@@ -137,8 +137,8 @@ class AppService {
 
   async getSupabaseCredentials(): Promise<{ url: string | null; anonKey: string | null }> {
     try {
-      const url = await databaseService.getConfig('supabase_url');
-      const anonKey = await databaseService.getConfig('supabase_anon_key');
+      const url = localStorage.getItem('config_supabase_url');
+      const anonKey = localStorage.getItem('config_supabase_anon_key');
       return { url, anonKey };
     } catch (error) {
       console.error('Error getting Supabase credentials:', error);
@@ -162,11 +162,28 @@ class AppService {
   }
 
   async getPendingSyncCount(): Promise<number> {
-    return await networkService.getPendingSyncCount();
+    const stats = await unifiedSyncService.getStats();
+    return stats.pending;
   }
 
   async forceSyncIfPossible(): Promise<{ success: boolean; message: string }> {
-    return await networkService.forceSyncIfOnline();
+    if (!networkService.getConnectionStatus()) {
+      return { success: false, message: 'Sem conexão de rede' };
+    }
+
+    if (!supabaseService.getConnectionStatus()) {
+      return { success: false, message: 'Supabase não conectado' };
+    }
+
+    try {
+      const result = await unifiedSyncService.forceSync();
+      return { 
+        success: result.success > 0, 
+        message: `${result.success} itens sincronizados, ${result.failed} falharam` 
+      };
+    } catch (error) {
+      return { success: false, message: 'Erro na sincronização' };
+    }
   }
 
   isInitialized(): boolean {
