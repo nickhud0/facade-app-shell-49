@@ -29,32 +29,32 @@ const Router = Capacitor.isNativePlatform() ? HashRouter : BrowserRouter;
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
-        <AppInitializer>
-          <Router>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/compra" element={<Compra />} />
-            <Route path="/venda" element={<Venda />} />
-            <Route path="/comanda-atual" element={<ComandaAtual />} />
-            <Route path="/historico-comandas" element={<HistoricoComandas />} />
-            <Route path="/fechamento" element={<Fechamento />} />
-            <Route path="/relatorios" element={<Relatorios />} />
-            <Route path="/ultimos" element={<Ultimos />} />
-            <Route path="/tabela-precos" element={<TabelaPrecos />} />
-            <Route path="/estoque" element={<Estoque />} />
-            <Route path="/cadastrar-material" element={<CadastrarMaterial />} />
-            <Route path="/cadastrar-despesa" element={<CadastrarDespesa />} />
-            <Route path="/vale" element={<Vale />} />
-            <Route path="/pendencias" element={<Pendencias />} />
-            <Route path="/configuracoes" element={<Configuracoes />} />
-            <Route path="/imprimir-comanda" element={<ImprimirComanda />} />
-            <Route path="/imprimir-comanda/:comandaId" element={<ImprimirComanda />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
-      </AppInitializer>
-      </ErrorBoundary>
+      <Router>
+        <ErrorBoundary>
+          <AppInitializer>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/compra" element={<Compra />} />
+              <Route path="/venda" element={<Venda />} />
+              <Route path="/comanda-atual" element={<ComandaAtual />} />
+              <Route path="/historico-comandas" element={<HistoricoComandas />} />
+              <Route path="/fechamento" element={<Fechamento />} />
+              <Route path="/relatorios" element={<Relatorios />} />
+              <Route path="/ultimos" element={<Ultimos />} />
+              <Route path="/tabela-precos" element={<TabelaPrecos />} />
+              <Route path="/estoque" element={<Estoque />} />
+              <Route path="/cadastrar-material" element={<CadastrarMaterial />} />
+              <Route path="/cadastrar-despesa" element={<CadastrarDespesa />} />
+              <Route path="/vale" element={<Vale />} />
+              <Route path="/pendencias" element={<Pendencias />} />
+              <Route path="/configuracoes" element={<Configuracoes />} />
+              <Route path="/imprimir-comanda" element={<ImprimirComanda />} />
+              <Route path="/imprimir-comanda/:comandaId" element={<ImprimirComanda />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppInitializer>
+        </ErrorBoundary>
+      </Router>
     </QueryClientProvider>
   );
 };
