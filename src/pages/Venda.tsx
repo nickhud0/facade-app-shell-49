@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { NetworkStatus } from "@/components/NetworkStatus";
+// import { NetworkStatus } from "@/components/NetworkStatus";
 import { formatCurrency } from "@/utils/formatters";
 import { useDataService } from "@/hooks/useDataService";
 import { Material, Transacao } from "@/services/localDbService";
@@ -142,7 +142,7 @@ const Venda = () => {
           </Button>
           <h1 className="text-2xl font-bold text-foreground">Vendas</h1>
         </div>
-        <NetworkStatus />
+        {/* <NetworkStatus /> */}
       </div>
 
       {/* Lista de Materiais para Venda */}

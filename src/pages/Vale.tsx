@@ -14,7 +14,7 @@ import { formatCurrency, formatDate } from "@/utils/formatters";
 import { useDataService } from "@/hooks/useDataService";
 import { Vale as ValeType } from "@/services/localDbService";
 import { LoadingSpinner, ErrorState, SummaryCard, PageWrapper, OfflineBanner } from "@/components/ui/loading-states";
-import { NetworkStatus } from "@/components/NetworkStatus";
+// import { NetworkStatus } from "@/components/NetworkStatus";
 
 // Lista de pessoas cadastradas (mock - em produção viria do servidor)
 const pessoasCadastradas = [
@@ -103,7 +103,7 @@ const Vale = () => {
           </Button>
           <h1 className="text-2xl font-bold text-foreground">Controle de Vales</h1>
         </div>
-        <NetworkStatus />
+        {/* <NetworkStatus /> */}
       </div>
 
       {/* Banner Offline */}

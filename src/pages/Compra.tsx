@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { NetworkStatus } from "@/components/NetworkStatus";
+// import { NetworkStatus } from "@/components/NetworkStatus";
 import { toYMD } from "@/utils/formatters";
 import { formatCurrency } from "@/utils/formatters";
 import { useDataService } from "@/hooks/useDataService";
@@ -145,7 +145,7 @@ const Compra = () => {
           </Button>
           <h1 className="text-2xl font-bold text-foreground">Compras</h1>
         </div>
-        <NetworkStatus />
+        {/* <NetworkStatus /> */}
       </div>
 
       {/* Lista de Materiais */}

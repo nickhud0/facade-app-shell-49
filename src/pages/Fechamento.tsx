@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import React, { useState } from "react";
-import { NetworkStatus } from "@/components/NetworkStatus";
+// import { NetworkStatus } from "@/components/NetworkStatus";
 import { formatCurrency, formatDate } from "@/utils/formatters";
 import { useFechamento } from "@/hooks/useFechamento";
 import { LoadingSpinner, ErrorState, SummaryCard, PageWrapper } from "@/components/ui/loading-states";
@@ -42,7 +42,7 @@ const Fechamento = () => {
           </Button>
           <h1 className="text-2xl font-bold text-foreground">Fechamento</h1>
         </div>
-        <NetworkStatus />
+        {/* <NetworkStatus /> */}
       </div>
 
       <PageWrapper 

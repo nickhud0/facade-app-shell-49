@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import React, { useState } from "react";
 import { useOfflineData } from "@/hooks/useOfflineData";
 import { Material } from "@/services/database";
-import { NetworkStatus } from "@/components/NetworkStatus";
+// import { NetworkStatus } from "@/components/NetworkStatus";
 import { useToast } from "@/hooks/use-toast";
 
 const CadastrarMaterial = () => {
@@ -88,7 +88,7 @@ const CadastrarMaterial = () => {
           </Button>
           <h1 className="text-2xl font-bold text-foreground">Cadastrar Material</h1>
         </div>
-        <NetworkStatus />
+        {/* <NetworkStatus /> */}
       </div>
 
       {/* Formulário */}

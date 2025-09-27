@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/utils/formatters";
-import { NetworkStatus } from "@/components/NetworkStatus";
+// import { NetworkStatus } from "@/components/NetworkStatus";
 import { useEstoqueService } from "@/hooks/useEstoqueService";
 import { LoadingSpinner, ErrorState, SummaryCard, PageWrapper, OfflineBanner } from "@/components/ui/loading-states";
 
@@ -50,7 +50,7 @@ const Estoque = () => {
           </Button>
           <h1 className="text-2xl font-bold text-foreground">Estoque</h1>
         </div>
-        <NetworkStatus />
+        {/* <NetworkStatus /> */}
       </div>
 
       {/* Banner Offline */}

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { NetworkStatus } from "@/components/NetworkStatus";
+// import { NetworkStatus } from "@/components/NetworkStatus";
 import { formatCurrency } from "@/utils/formatters";
 import { LoadingSpinner, ErrorState, PageWrapper, EmptyState } from "@/components/ui/loading-states";
 import { useMateriais } from "@/hooks/useStandardData";
@@ -88,7 +88,7 @@ const TabelaPrecos = () => {
           </Button>
           <h1 className="text-2xl font-bold text-foreground">Tabela de Preços</h1>
         </div>
-        <NetworkStatus />
+        {/* <NetworkStatus /> */}
       </div>
 
       {/* Busca */}
