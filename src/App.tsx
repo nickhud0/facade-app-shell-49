@@ -2,7 +2,6 @@ import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, BrowserRouter, Routes, Route } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
-import { AppInitializer } from "./components/AppInitializer";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Compra from "./pages/Compra";
@@ -21,43 +20,44 @@ import Pendencias from "./pages/Pendencias";
 import Configuracoes from "./pages/Configuracoes";
 import ImprimirComanda from "./pages/ImprimirComanda";
 
-const queryClient = new QueryClient();
-
-import { ErrorBoundary } from "./components/ErrorBoundary";
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
 const Router = Capacitor.isNativePlatform() ? HashRouter : BrowserRouter;
 
-const App = () => {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <ErrorBoundary>
-          <AppInitializer>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/compra" element={<Compra />} />
-              <Route path="/venda" element={<Venda />} />
-              <Route path="/comanda-atual" element={<ComandaAtual />} />
-              <Route path="/historico-comandas" element={<HistoricoComandas />} />
-              <Route path="/fechamento" element={<Fechamento />} />
-              <Route path="/relatorios" element={<Relatorios />} />
-              <Route path="/ultimos" element={<Ultimos />} />
-              <Route path="/tabela-precos" element={<TabelaPrecos />} />
-              <Route path="/estoque" element={<Estoque />} />
-              <Route path="/cadastrar-material" element={<CadastrarMaterial />} />
-              <Route path="/cadastrar-despesa" element={<CadastrarDespesa />} />
-              <Route path="/vale" element={<Vale />} />
-              <Route path="/pendencias" element={<Pendencias />} />
-              <Route path="/configuracoes" element={<Configuracoes />} />
-              <Route path="/imprimir-comanda" element={<ImprimirComanda />} />
-              <Route path="/imprimir-comanda/:comandaId" element={<ImprimirComanda />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AppInitializer>
-        </ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/compra" element={<Compra />} />
+          <Route path="/venda" element={<Venda />} />
+          <Route path="/comanda-atual" element={<ComandaAtual />} />
+          <Route path="/historico-comandas" element={<HistoricoComandas />} />
+          <Route path="/fechamento" element={<Fechamento />} />
+          <Route path="/relatorios" element={<Relatorios />} />
+          <Route path="/ultimos" element={<Ultimos />} />
+          <Route path="/tabela-precos" element={<TabelaPrecos />} />
+          <Route path="/estoque" element={<Estoque />} />
+          <Route path="/cadastrar-material" element={<CadastrarMaterial />} />
+          <Route path="/cadastrar-despesa" element={<CadastrarDespesa />} />
+          <Route path="/vale" element={<Vale />} />
+          <Route path="/pendencias" element={<Pendencias />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/imprimir-comanda" element={<ImprimirComanda />} />
+          <Route path="/imprimir-comanda/:comandaId" element={<ImprimirComanda />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </Router>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;
