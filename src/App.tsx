@@ -1,23 +1,40 @@
 import React from "react";
+import { Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
+import Index from "@/pages/Index";
+import Relatorios from "@/pages/Relatorios";
+import ComandaAtual from "@/pages/ComandaAtual";
+import Compra from "@/pages/Compra";
+import Venda from "@/pages/Venda";
+import Vale from "@/pages/Vale";
+import Configuracoes from "@/pages/Configuracoes";
+import HistoricoComandas from "@/pages/HistoricoComandas";
+import TabelaPrecos from "@/pages/TabelaPrecos";
+import Estoque from "@/pages/Estoque";
+import Fechamento from "@/pages/Fechamento";
+import NotFound from "@/pages/NotFound";
+import { MockDataProvider } from "@/contexts/MockDataContext";
 
 export default function App() {
-  // Clear any cached modules
-  console.log('App loading fresh without cache');
-  
   return (
-    <div style={{ 
-      padding: "20px", 
-      fontFamily: "Arial, sans-serif",
-      backgroundColor: "#f5f5f5",
-      minHeight: "100vh"
-    }}>
-      <h1 style={{ color: "#333", marginBottom: "20px" }}>✅ App Funcionando</h1>
-      <p style={{ color: "#666", fontSize: "16px" }}>
-        React carregado com sucesso - sem erros de bundling ou cache.
-      </p>
-      <p style={{ color: "#999", fontSize: "14px", marginTop: "10px" }}>
-        Timestamp: {new Date().toLocaleString()}
-      </p>
-    </div>
+    <MockDataProvider>
+      <div className="min-h-screen bg-background">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/relatorios" element={<Relatorios />} />
+          <Route path="/comanda-atual" element={<ComandaAtual />} />
+          <Route path="/compra" element={<Compra />} />
+          <Route path="/venda" element={<Venda />} />
+          <Route path="/vale" element={<Vale />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/historico" element={<HistoricoComandas />} />
+          <Route path="/tabela-precos" element={<TabelaPrecos />} />
+          <Route path="/estoque" element={<Estoque />} />
+          <Route path="/fechamento" element={<Fechamento />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
+      </div>
+    </MockDataProvider>
   );
 }

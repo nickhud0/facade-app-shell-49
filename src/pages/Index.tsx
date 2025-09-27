@@ -1,96 +1,94 @@
-import React from "react";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { 
   ShoppingCart, 
-  DollarSign, 
-  FileText, 
+  TrendingUp, 
   History, 
-  Calculator, 
-  BarChart3, 
-  Clock, 
-  List, 
   Package, 
-  Plus, 
-  Receipt, 
-  CreditCard, 
-  AlertCircle, 
-  Settings,
-  Printer
-} from "lucide-react";
-import { Link } from "react-router-dom";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+  FileText, 
+  Settings, 
+  Calculator,
+  Printer,
+  Package2
+} from 'lucide-react';
+import { Navigation } from '@/components/Navigation';
+import { useMockData } from '@/contexts/MockDataContext';
 
 const menuItems = [
-  { title: "COMPRA", path: "/compra", icon: ShoppingCart, color: "text-primary" },
-  { title: "VENDA", path: "/venda", icon: DollarSign, color: "text-green-600" },
-  { title: "Comanda Atual", path: "/comanda-atual", icon: FileText, color: "text-blue-600" },
-  { title: "Histórico de Comandas", path: "/historico-comandas", icon: History, color: "text-muted-foreground" },
-  { title: "Fechamento", path: "/fechamento", icon: Calculator, color: "text-primary" },
-  { title: "Relatórios", path: "/relatorios", icon: BarChart3, color: "text-muted-foreground" },
-  { title: "Últimos", path: "/ultimos", icon: Clock, color: "text-blue-600" },
-  { title: "Tabela de Preços", path: "/tabela-precos", icon: List, color: "text-muted-foreground" },
-  { title: "Estoque", path: "/estoque", icon: Package, color: "text-primary" },
-  { title: "Cadastrar Material", path: "/cadastrar-material", icon: Plus, color: "text-green-600" },
-  { title: "Cadastrar Despesa", path: "/cadastrar-despesa", icon: Receipt, color: "text-orange-600" },
-  { title: "Vale", path: "/vale", icon: CreditCard, color: "text-blue-600" },
-  { title: "Pendências", path: "/pendencias", icon: AlertCircle, color: "text-orange-600" },
-  { title: "Configurações", path: "/configuracoes", icon: Settings, color: "text-muted-foreground" },
+  { title: 'Compra', path: '/compra', icon: ShoppingCart, color: 'text-blue-600' },
+  { title: 'Venda', path: '/venda', icon: TrendingUp, color: 'text-green-600' },
+  { title: 'Histórico', path: '/historico', icon: History, color: 'text-purple-600' },
+  { title: 'Estoque', path: '/estoque', icon: Package, color: 'text-orange-600' },
+  { title: 'Relatórios', path: '/relatorios', icon: FileText, color: 'text-red-600' },
+  { title: 'Vale', path: '/vale', icon: Calculator, color: 'text-indigo-600' },
+  { title: 'Tabela de Preços', path: '/tabela-precos', icon: Package2, color: 'text-teal-600' },
+  { title: 'Fechamento', path: '/fechamento', icon: Calculator, color: 'text-pink-600' },
+  { title: 'Configurações', path: '/configuracoes', icon: Settings, color: 'text-gray-600' },
 ];
 
-const Index = () => {
+export default function Index() {
+  const navigate = useNavigate();
+  const { isOnline } = useMockData();
+
   return (
-    <div className="min-h-screen bg-background p-4">
-      {/* Header */}
-      <div className="text-center mb-6">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Reciclagem Pereque
-            </h1>
-            <p className="text-muted-foreground">
-              Gestão completa do seu depósito
-            </p>
+    <div className="min-h-screen bg-background">
+      <Navigation title="Reciclagem Perequê" showBack={false} />
+      
+      <div className="p-4 space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold text-foreground">
+            Sistema de Reciclagem
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Gestão completa de materiais recicláveis
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-orange-500'}`} />
+            <span className="text-xs text-muted-foreground">
+              {isOnline ? 'Online' : 'Offline'}
+            </span>
           </div>
         </div>
-      </div>
 
-      {/* Botão Principal - Imprimir Última Comanda */}
-      <Card className="mb-6 p-4 bg-gradient-to-r from-success to-success/80 border-0 shadow-lg">
-        <Link to="/imprimir-comanda">
-          <Button 
-            variant="ghost" 
-            className="w-full h-16 text-success-foreground hover:bg-white/10"
-            size="lg"
-          >
-            <Printer className="mr-3 h-6 w-6" />
-            <span className="text-lg font-semibold">Imprimir Última Comanda</span>
-          </Button>
-        </Link>
-      </Card>
+        {/* Print Last Command Button */}
+        <Card>
+          <CardContent className="p-4">
+            <Button 
+              className="w-full h-12 text-base font-semibold"
+              onClick={() => navigate('/comanda-atual')}
+            >
+              <Printer className="mr-2 h-5 w-5" />
+              Imprimir Última Comanda
+            </Button>
+          </CardContent>
+        </Card>
 
-      {/* Grid de Menu */}
-      <div className="grid grid-cols-2 gap-4">
-        {menuItems.map((item) => {
-          const IconComponent = item.icon;
-          return (
-            <Link key={item.path} to={item.path}>
-              <Card className="h-24 bg-gradient-to-br from-card to-card/50">
-                <div className="flex flex-col items-center justify-center h-full p-4">
-                  <IconComponent 
-                    className={`h-6 w-6 mb-2 ${item.color}`} 
-                  />
-                  <span className="text-sm font-medium text-center text-card-foreground leading-tight">
+        {/* Menu Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          {menuItems.map((item) => {
+            const IconComponent = item.icon;
+            return (
+              <Card 
+                key={item.title}
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => navigate(item.path)}
+              >
+                <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+                  <div className={`p-3 rounded-full bg-muted ${item.color}`}>
+                    <IconComponent className="h-6 w-6" />
+                  </div>
+                  <span className="font-medium text-sm leading-tight">
                     {item.title}
                   </span>
-                </div>
+                </CardContent>
               </Card>
-            </Link>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-
     </div>
   );
-};
-
-export default Index;
+}

@@ -1,293 +1,160 @@
-import { ArrowLeft, Plus, Package } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-// import { NetworkStatus } from "@/components/NetworkStatus";
-import { formatCurrency } from "@/utils/formatters";
-import { useDataService } from "@/hooks/useDataService";
-import { Material, Transacao } from "@/services/localDbService";
-import { LoadingSpinner, ErrorState, EmptyState, PageWrapper } from "@/components/ui/loading-states";
+import React, { useState } from 'react';
+import { Navigation } from '@/components/Navigation';
+import { PageWrapper } from '@/components/PageWrapper';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMockData } from '@/contexts/MockDataContext';
+import { toast } from 'sonner';
 
-const Venda = () => {
-  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
-  const [peso, setPeso] = useState("");
-  const [precoPersonalizado, setPrecoPersonalizado] = useState("");
-  const [desconto, setDesconto] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
+export default function Venda() {
+  const { materiais, addTransacao, isOnline } = useMockData();
+  const [formData, setFormData] = useState({
+    materialId: '',
+    peso: '',
+    valorUnitario: '',
+  });
+  const [loading, setLoading] = useState(false);
 
-  const materiaisService = useDataService<Material>('materiais');
-  const transacoesService = useDataService<Transacao>('transacoes');
-
-  const { 
-    data: materiais, 
-    loading: loadingMateriais, 
-    error: errorMateriais,
-    isOnline,
-    hasData,
-    refresh: refreshMateriais
-  } = materiaisService;
-
-  const { createItem: createTransacao } = transacoesService;
-
-  // Verificar se existe uma comanda de compra em andamento
-  useEffect(() => {
-    const comandaStorage = localStorage.getItem('comandaAtual');
-    if (comandaStorage) {
-      const comanda = JSON.parse(comandaStorage);
-      if (comanda.tipo === "compra" && comanda.itens.length > 0) {
-        toast({
-          title: "Atenção",
-          description: "Não é possível adicionar materiais de venda em uma comanda de compra!",
-          variant: "destructive"
-        });
-        navigate("/comanda-atual");
-        return;
-      }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.materialId || !formData.peso || !formData.valorUnitario) {
+      toast.error('Preencha todos os campos');
+      return;
     }
-  }, [navigate, toast]);
 
-  const handleMaterialClick = (material: Material) => {
-    setSelectedMaterial(material);
-    setPeso("");
-    setPrecoPersonalizado((material.preco_venda_kg || 0).toString());
-    setDesconto("");
-    setIsDialogOpen(true);
-  };
+    setLoading(true);
+    
+    try {
+      const peso = parseFloat(formData.peso);
+      const valorUnitario = parseFloat(formData.valorUnitario);
+      const valorTotal = peso * valorUnitario;
 
-  const handleAdicionar = async () => {
-    if (!selectedMaterial || !peso) return;
+      addTransacao({
+        tipo: 'venda',
+        material_id: parseInt(formData.materialId),
+        peso,
+        valor: valorTotal,
+      });
 
-    const pesoNum = parseFloat(peso) || 0;
-    const descontoKg = parseFloat(desconto) || 0;
-    const pesoLiquido = Math.max(0, pesoNum - descontoKg);
-    const precoNum = parseFloat(precoPersonalizado) || 0;
-    const total = pesoLiquido * Math.max(0, precoNum);
-
-    // Criar transação para o banco de dados
-    const success = await createTransacao({
-      tipo: 'venda',
-      material_id: selectedMaterial.id!,
-      peso: pesoLiquido,
-      valor_total: total,
-      observacoes: desconto ? `Desconto: ${descontoKg}kg` : undefined,
-      created_at: new Date().toISOString()
-    });
-
-    if (success) {
-      // Criar item para a comanda local (compatibilidade)
-      const novoItem = {
-        id: Date.now(),
-        material: selectedMaterial.nome,
-        preco: precoNum,
-        quantidade: pesoLiquido,
-        total: total
-      };
-
-      // Atualizar comanda no localStorage (para manter compatibilidade)
-      const comandaStorage = localStorage.getItem('comandaAtual');
-      let comanda = { itens: [], tipo: "venda", total: 0 };
-      
-      if (comandaStorage) {
-        comanda = JSON.parse(comandaStorage);
-      }
-      
-      comanda.itens.push(novoItem);
-      comanda.tipo = "venda";
-      comanda.total = comanda.itens.reduce((acc: any, item: any) => acc + item.total, 0);
-      
-      localStorage.setItem('comandaAtual', JSON.stringify(comanda));
-      
-      setIsDialogOpen(false);
-      navigate("/comanda-atual");
+      // Reset form
+      setFormData({
+        materialId: '',
+        peso: '',
+        valorUnitario: '',
+      });
+    } catch (error) {
+      toast.error('Erro ao registrar venda');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCancelar = () => {
-    setIsDialogOpen(false);
-    setSelectedMaterial(null);
-  };
-
-  const calcularSubtotal = () => {
-    if (!selectedMaterial || !peso) return 0;
-    const pesoNum = parseFloat(peso) || 0;
-    const descontoKg = parseFloat(desconto) || 0;
-    const pesoLiquido = Math.max(0, pesoNum - descontoKg);
-    const precoNum = parseFloat(precoPersonalizado) || 0;
-    return pesoLiquido * Math.max(0, precoNum);
-  };
-
-  // Função para determinar a cor de fundo do ícone baseada no índice
-  const getIconColor = (index: number) => {
-    const colors = [
-      "bg-primary", "bg-success", "bg-warning", "bg-destructive",
-      "bg-accent", "bg-secondary", "bg-primary-dark", "bg-success/80"
-    ];
-    return colors[index % colors.length];
-  };
+  const selectedMaterial = materiais.find(m => m.id.toString() === formData.materialId);
+  const valorTotal = formData.peso && formData.valorUnitario 
+    ? (parseFloat(formData.peso) * parseFloat(formData.valorUnitario)).toFixed(2)
+    : '0.00';
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center">
-          <Button variant="ghost" size="sm" className="mr-3" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-2xl font-bold text-foreground">Vendas</h1>
-        </div>
-        {/* <NetworkStatus /> */}
-      </div>
-
-      {/* Lista de Materiais para Venda */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-foreground">
-            Selecionar Material para Venda
-          </h2>
-          <Link to="/cadastrar-material">
-            <Button variant="outline" size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Material
-            </Button>
-          </Link>
-        </div>
-
-        {loadingMateriais ? (
-          <LoadingSpinner message="Carregando materiais..." />
-        ) : errorMateriais ? (
-          <ErrorState message={errorMateriais} onRetry={refreshMateriais} />
-        ) : materiais.length === 0 ? (
-          <EmptyState
-            icon={Package}
-            title="Nenhum material cadastrado"
-            description="Cadastre o primeiro material para começar as vendas"
-            actionLabel="Cadastrar Primeiro Material"
-            onAction={() => navigate("/cadastrar-material")}
-          />
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {materiais.map((material, index) => (
-              <Card 
-                key={material.id} 
-                className="p-4 cursor-pointer bg-card border-white hover:shadow-md transition-shadow"
-                onClick={() => handleMaterialClick(material)}
-              >
-                <div className="flex flex-col items-center space-y-3 text-center">
-                  <div className={`w-16 h-16 rounded-full ${getIconColor(index)} flex items-center justify-center shadow-card`}>
-                    <Package className="h-8 w-8 text-white" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="font-semibold text-foreground text-sm leading-tight">
-                      {material.nome}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {material.categoria || "Outros"}
-                    </p>
-                    <p className="font-bold text-success text-sm">
-                      {formatCurrency(material.preco_venda_kg || 0)}/kg
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Dialog para seleção de peso e desconto */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Adicionar Material - Venda</DialogTitle>
-          </DialogHeader>
-          
-          {selectedMaterial && (
-            <div className="space-y-4">
-              <div className="p-3 bg-muted rounded-lg">
-                <h3 className="font-semibold">{selectedMaterial.nome}</h3>
-                <p className="text-sm text-muted-foreground">{selectedMaterial.categoria || "Outros"}</p>
-                <p className="text-sm font-medium">{formatCurrency(selectedMaterial.preco_venda_kg || 0)}/kg</p>
+    <PageWrapper isOnline={isOnline}>
+      <Navigation title="Registrar Venda" />
+      
+      <div className="p-4 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Venda de Material
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="material">Material</Label>
+                <Select
+                  value={formData.materialId}
+                  onValueChange={(value) => {
+                    const material = materiais.find(m => m.id.toString() === value);
+                    setFormData(prev => ({
+                      ...prev,
+                      materialId: value,
+                      valorUnitario: material?.preco_venda.toString() || '',
+                    }));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um material" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {materiais.map((material) => (
+                      <SelectItem key={material.id} value={material.id.toString()}>
+                        {material.nome} - R$ {material.preco_venda.toFixed(2)}/kg
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div className="space-y-3">
-                <div>
-                  <Label htmlFor="peso">Peso (kg) *</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="peso">Peso (kg)</Label>
                   <Input
                     id="peso"
                     type="number"
-                    step="0.1"
-                    placeholder="0.0"
-                    value={peso}
-                    onChange={(e) => setPeso(e.target.value)}
-                    className="mt-1"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={formData.peso}
+                    onChange={(e) => setFormData(prev => ({ ...prev, peso: e.target.value }))}
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="preco">Preço por kg (R$)</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="valorUnitario">Valor/kg (R$)</Label>
                   <Input
-                    id="preco"
+                    id="valorUnitario"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    value={precoPersonalizado}
-                    onChange={(e) => setPrecoPersonalizado(e.target.value)}
-                    className="mt-1"
+                    value={formData.valorUnitario}
+                    onChange={(e) => setFormData(prev => ({ ...prev, valorUnitario: e.target.value }))}
                   />
                 </div>
+              </div>
 
-                <div>
-                  <Label htmlFor="desconto">Desconto por Kg</Label>
-                  <Input
-                    id="desconto"
-                    type="number"
-                    step="0.1"
-                    placeholder="0.0"
-                    value={desconto}
-                    onChange={(e) => setDesconto(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-
-                <div className="p-3 bg-success/10 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Subtotal:</span>
-                    <span className="text-lg font-bold text-success">
-                      {formatCurrency(calcularSubtotal())}
-                    </span>
+              {selectedMaterial && (
+                <div className="p-4 bg-muted rounded-lg space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Material:</span>
+                    <span>{selectedMaterial.nome}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Categoria:</span>
+                    <span>{selectedMaterial.categoria}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Peso:</span>
+                    <span>{formData.peso || '0'} kg</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total:</span>
+                    <span className="text-blue-600">R$ {valorTotal}</span>
                   </div>
                 </div>
-              </div>
+              )}
 
-              <div className="flex space-x-2 pt-4">
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={handleCancelar}
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  className="flex-1 bg-gradient-to-r from-success to-success/80"
-                  onClick={handleAdicionar}
-                  disabled={!peso}
-                >
-                  Adicionar
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={loading || !formData.materialId || !formData.peso || !formData.valorUnitario}
+              >
+                {loading ? 'Registrando...' : 'Registrar Venda'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </PageWrapper>
   );
-};
-
-export default Venda;
+}
