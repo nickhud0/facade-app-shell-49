@@ -156,21 +156,6 @@ const HistoricoComandas = () => {
         </div>
         
         <div className="flex items-center gap-2">
-          {pendingSyncCount > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {pendingSyncCount} pendente{pendingSyncCount > 1 ? 's' : ''}
-            </Badge>
-          )}
-          
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={isOnline ? handleSyncPending : refreshCache}
-            disabled={loadingCache || loadingBusca}
-          >
-            <RefreshCw className={cn("h-4 w-4", (loadingCache || loadingBusca) && "animate-spin")} />
-          </Button>
-          
           {isOnline ? (
             <Wifi className="h-4 w-4 text-success" />
           ) : (
@@ -418,39 +403,6 @@ const HistoricoComandas = () => {
         )}
       </div>
 
-      {/* Resumo */}
-      <Card className="mt-6 p-4 bg-gradient-to-r from-primary/5 to-primary/10">
-        <h3 className="font-semibold text-foreground mb-3">Resumo</h3>
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-2xl font-bold text-primary">{comandasExibidas.length}</p>
-            <p className="text-sm text-muted-foreground">Comandas</p>
-          </div>
-          <div>
-             <p className="text-2xl font-bold text-success">
-               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(comandasExibidas.reduce((acc, c) => acc + c.total, 0))}
-             </p>
-            <p className="text-sm text-muted-foreground">Total</p>
-          </div>
-          <div>
-             <p className="text-2xl font-bold text-accent">
-               {comandasExibidas.length > 0 
-                 ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(comandasExibidas.reduce((acc, c) => acc + c.total, 0) / comandasExibidas.length)
-                 : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(0)
-               }
-             </p>
-            <p className="text-sm text-muted-foreground">Ticket Médio</p>
-          </div>
-        </div>
-        
-        {!isOnline && (
-          <div className="mt-3 pt-3 border-t border-border/10">
-            <p className="text-xs text-muted-foreground text-center">
-              Dados baseados nas últimas 20 comandas em cache local
-            </p>
-          </div>
-        )}
-      </Card>
     </div>
   );
 };

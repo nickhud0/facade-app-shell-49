@@ -155,17 +155,17 @@ const TabelaPrecos = () => {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="text-center sm:text-left">
-                    <p className="text-xs text-muted-foreground mb-1">Preço Compra</p>
-                    <p className="text-lg font-bold text-primary whitespace-nowrap">
-                      {formatCurrency(material.preco_compra_kg)}/kg
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col items-center p-2 bg-primary/5 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Compra</p>
+                    <p className="text-sm font-bold text-primary">
+                      {formatCurrency(material.preco_compra_kg)}
                     </p>
                   </div>
-                  <div className="text-center sm:text-left">
-                    <p className="text-xs text-muted-foreground mb-1">Preço Venda</p>
-                    <p className="text-lg font-bold text-success whitespace-nowrap">
-                      {formatCurrency(material.preco_venda_kg)}/kg
+                  <div className="flex flex-col items-center p-2 bg-success/5 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Venda</p>
+                    <p className="text-sm font-bold text-success">
+                      {formatCurrency(material.preco_venda_kg)}
                     </p>
                   </div>
                 </div>
@@ -183,19 +183,9 @@ const TabelaPrecos = () => {
 
           {/* Resumo */}
           <Card className="p-4 bg-gradient-to-r from-primary/5 to-accent/5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-foreground">Total de Materiais</h3>
-                <p className="text-2xl font-bold text-primary">{materiaisFiltrados.length}</p>
-              </div>
-              <div className="text-right">
-                <Link to="/cadastrar-material">
-                  <Button variant="outline" size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Novo Material
-                  </Button>
-                </Link>
-              </div>
+            <div className="text-center">
+              <h3 className="font-semibold text-foreground">Total de Materiais</h3>
+              <p className="text-2xl font-bold text-primary">{materiaisFiltrados.length}</p>
             </div>
           </Card>
         </>
