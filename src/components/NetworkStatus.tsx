@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 import { Wifi, WifiOff } from 'lucide-react';
 
 interface NetworkStatusProps {
@@ -7,49 +7,55 @@ interface NetworkStatusProps {
 }
 
 export const NetworkStatus = ({ className = "", showDetails = false }: NetworkStatusProps) => {
-  const [supabaseConnected, setSupabaseConnected] = useState(false);
-  const [isReady, setIsReady] = useState(false);
+  const [supabaseConnected, setSupabaseConnected] = React.useState(false);
+  const [isReady, setIsReady] = React.useState(false);
 
-  useEffect(() => {
-    // Defer the service import to avoid initialization issues
+  React.useEffect(() => {
+    let mounted = true;
+    let interval: NodeJS.Timeout;
+
     const initializeNetworkStatus = async () => {
       try {
-        // Wait for React to fully initialize
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Wait for app to be ready
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Dynamic import to avoid circular dependencies
-        const { appService } = await import('@/services/appService');
+        if (!mounted) return;
+        setIsReady(true);
         
-        const update = () => {
+        // Simple status check without complex service dependencies
+        const checkStatus = () => {
           try {
-            const status = appService.getConnectionStatus();
-            setSupabaseConnected(status.supabaseConnected);
+            // Basic connectivity check
+            const online = navigator.onLine;
+            setSupabaseConnected(online);
           } catch (error) {
             console.warn('NetworkStatus update failed:', error);
             setSupabaseConnected(false);
           }
         };
 
-        update();
-        setIsReady(true);
-        
-        const interval = setInterval(update, 2000);
-        return () => clearInterval(interval);
+        checkStatus();
+        interval = setInterval(checkStatus, 3000);
       } catch (error) {
         console.warn('NetworkStatus initialization failed:', error);
-        setIsReady(true); // Still show component even if initialization fails
+        if (mounted) {
+          setIsReady(true);
+          setSupabaseConnected(false);
+        }
       }
     };
 
-    const cleanup = initializeNetworkStatus();
+    initializeNetworkStatus();
+
     return () => {
-      cleanup.then(cleanupFn => {
-        if (typeof cleanupFn === 'function') cleanupFn();
-      });
+      mounted = false;
+      if (interval) {
+        clearInterval(interval);
+      }
     };
   }, []);
 
-  // Don't render anything until we're ready to avoid errors
+  // Don't render anything until we're ready
   if (!isReady) {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
@@ -75,12 +81,12 @@ export const NetworkStatus = ({ className = "", showDetails = false }: NetworkSt
       {supabaseConnected ? (
         <>
           <Wifi className="h-4 w-4 text-success" />
-          <span className="text-sm font-medium">Supabase: Conectado</span>
+          <span className="text-sm font-medium">Online</span>
         </>
       ) : (
         <>
           <WifiOff className="h-4 w-4 text-warning" />
-          <span className="text-sm font-medium">Supabase: Não Conectado</span>
+          <span className="text-sm font-medium">Offline</span>
         </>
       )}
     </div>
