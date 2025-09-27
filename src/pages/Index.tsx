@@ -19,7 +19,7 @@ import {
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { NetworkStatus } from "@/components/NetworkStatus";
+// import { NetworkStatus } from "@/components/NetworkStatus";
 
 const menuItems = [
   { title: "COMPRA", path: "/compra", icon: ShoppingCart, color: "text-primary" },
@@ -52,9 +52,9 @@ const Index = () => {
               Gestão completa do seu depósito
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <NetworkStatus />
-          </div>
+          </div> */}
         </div>
       </div>
 
