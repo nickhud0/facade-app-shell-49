@@ -1,11 +1,11 @@
 import React from 'react';
 
-interface NetworkStatusProps {
+interface SimpleStatusProps {
   className?: string;
   showDetails?: boolean;
 }
 
-export const NetworkStatus = ({ className = "", showDetails = false }: NetworkStatusProps) => {
+export const SimpleStatus = ({ className = "", showDetails = false }: SimpleStatusProps) => {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <div className="h-4 w-4 bg-green-500 rounded-full"></div>
@@ -13,3 +13,6 @@ export const NetworkStatus = ({ className = "", showDetails = false }: NetworkSt
     </div>
   );
 };
+
+// Legacy export for compatibility
+export const NetworkStatus = SimpleStatus;
