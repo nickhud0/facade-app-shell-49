@@ -1,12 +1,10 @@
 import React from "react";
 
-function App() {
+export default function App() {
   return (
-    <div className="min-h-screen bg-background p-4">
-      <h1 className="text-2xl font-bold">App carregado com sucesso</h1>
-      <p>Se você está vendo esta mensagem, o React está funcionando.</p>
+    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
+      <h1 style={{ color: "#333" }}>App Funcionando</h1>
+      <p>React carregado com sucesso - sem erros de bundling.</p>
     </div>
   );
 }
-
-export default App;
