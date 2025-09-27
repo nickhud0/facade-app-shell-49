@@ -1,6 +1,6 @@
 import { ArrowLeft, CreditCard, Plus, Search, User, UserPlus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { useState } from "react";
+import React, { useState } from "react";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { formatCurrency, formatDate } from "@/utils/formatters";
 import { useFechamento } from "@/hooks/useFechamento";

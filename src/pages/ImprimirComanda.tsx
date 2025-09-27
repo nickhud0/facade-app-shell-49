@@ -3,7 +3,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { logger } from '@/utils/logger';
 import { notifyError } from '@/utils/errorHandler';
 import { pdfService, ComandaParaPDF } from "@/services/print/pdfService";

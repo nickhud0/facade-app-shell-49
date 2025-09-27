@@ -3,7 +3,7 @@
  * Exibe ícones de status e permite sincronização manual
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Wifi, WifiOff, RotateCcw, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

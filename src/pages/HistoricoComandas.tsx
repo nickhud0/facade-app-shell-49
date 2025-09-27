@@ -1,6 +1,6 @@
 import { ArrowLeft, Search, FileText, Calendar, ShoppingCart, ShoppingBag, CalendarIcon, Printer, Wifi, WifiOff, RefreshCw } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

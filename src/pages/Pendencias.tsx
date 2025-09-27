@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import React, { useState } from "react";
 import { getSyncIcon, getSyncTooltip, getSyncIconColor } from "@/utils/syncStatus";
 import { formatCurrency } from "@/utils/formatters";
 import { LoadingSpinner, ErrorState, PageWrapper, EmptyState } from "@/components/ui/loading-states";

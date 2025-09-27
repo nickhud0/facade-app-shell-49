@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useOfflineData } from "@/hooks/useOfflineData";
 import { Material } from "@/services/database";
 import { NetworkStatus } from "@/components/NetworkStatus";

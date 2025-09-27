@@ -1,6 +1,6 @@
 import { ArrowLeft, Plus, Trash2, Save, Edit, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { logger } from '@/utils/logger';
 import { notifyError } from '@/utils/errorHandler';
 import { Button } from "@/components/ui/button";
