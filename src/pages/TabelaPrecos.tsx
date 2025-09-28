@@ -32,8 +32,8 @@ const TabelaPrecos = () => {
 
   const handleEditClick = (material: any) => {
     setSelectedMaterial(material);
-    setNovoPrecoVenda(material.preco_venda_kg.toString());
-    setNovoPrecoCompra(material.preco_compra_kg.toString());
+    setNovoPrecoVenda(material.preco_venda.toString());
+    setNovoPrecoCompra(material.preco_compra.toString());
     setIsEditDialogOpen(true);
   };
 
@@ -159,13 +159,13 @@ const TabelaPrecos = () => {
                   <div className="flex flex-col items-center p-2 bg-primary/5 rounded-lg">
                     <p className="text-xs text-muted-foreground mb-1">Compra</p>
                     <p className="text-sm font-bold text-primary">
-                      {formatCurrency(material.preco_compra_kg)}
+                      {formatCurrency(material.preco_compra)}
                     </p>
                   </div>
                   <div className="flex flex-col items-center p-2 bg-success/5 rounded-lg">
                     <p className="text-xs text-muted-foreground mb-1">Venda</p>
                     <p className="text-sm font-bold text-success">
-                      {formatCurrency(material.preco_venda_kg)}
+                      {formatCurrency(material.preco_venda)}
                     </p>
                   </div>
                 </div>
@@ -205,8 +205,8 @@ const TabelaPrecos = () => {
                 <h3 className="font-semibold">{selectedMaterial.nome}</h3>
                 <p className="text-sm text-muted-foreground">{selectedMaterial.categoria || "Outros"}</p>
                 <div className="text-sm text-muted-foreground space-y-1">
-                  <p>Preço compra: {formatCurrency(selectedMaterial.preco_compra_kg)}/kg</p>
-                  <p>Preço venda atual: {formatCurrency(selectedMaterial.preco_venda_kg)}/kg</p>
+                  <p>Preço compra: {formatCurrency(selectedMaterial.preco_compra)}/kg</p>
+                  <p>Preço venda atual: {formatCurrency(selectedMaterial.preco_venda)}/kg</p>
                 </div>
               </div>
 

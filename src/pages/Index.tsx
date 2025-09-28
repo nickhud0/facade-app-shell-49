@@ -11,7 +11,8 @@ import {
   Settings, 
   Calculator,
   Printer,
-  Package2
+  Package2,
+  Clock
 } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { useMockData } from '@/contexts/MockDataContext';
@@ -20,6 +21,7 @@ const menuItems = [
   { title: 'Compra', path: '/compra', icon: ShoppingCart, color: 'text-blue-600' },
   { title: 'Venda', path: '/venda', icon: TrendingUp, color: 'text-green-600' },
   { title: 'Histórico', path: '/historico', icon: History, color: 'text-purple-600' },
+  { title: 'Últimos', path: '/ultimos', icon: Clock, color: 'text-amber-600' },
   { title: 'Estoque', path: '/estoque', icon: Package, color: 'text-orange-600' },
   { title: 'Relatórios', path: '/relatorios', icon: FileText, color: 'text-red-600' },
   { title: 'Vale', path: '/vale', icon: Calculator, color: 'text-indigo-600' },

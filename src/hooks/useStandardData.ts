@@ -4,43 +4,61 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { Material, Transacao, Vale, Despesa } from '@/services/database';
-import { useDataService } from '@/hooks/useDataService';
-import { useToast } from '@/hooks/use-toast';
+import { useMockData } from '@/contexts/MockDataContext';
+
+export interface Material {
+  id: number;
+  nome: string;
+  preco_compra: number;
+  preco_venda: number;
+  unidade: string;
+  created_at: string;
+}
+
+export interface Transacao {
+  id: number;
+  tipo: 'compra' | 'venda';
+  material_id: number;
+  peso: number;
+  valor_total: number;
+  created_at: string;
+}
+
+export interface Vale {
+  id: number;
+  nome_cliente: string;
+  valor: number;
+  status: 'pendente' | 'pago';
+  created_at: string;
+}
+
+export interface Despesa {
+  id: number;
+  descricao: string;
+  valor: number;
+  categoria: string;
+  created_at: string;
+}
 
 /**
  * Hook padrão para materiais
  */
 export function useMateriais() {
-  const { data, loading, error, isOnline, hasData, refresh, createItem } = useDataService<Material>('materiais');
-  const { toast } = useToast();
-
+  const { materiais, loading } = useMockData();
+  
   const createMaterial = useCallback(async (material: Omit<Material, 'id'>) => {
-    const success = await createItem(material);
-    
-    if (success) {
-      toast({
-        title: "Material cadastrado",
-        description: isOnline ? "Salvo no servidor" : "Será sincronizado quando conectar"
-      });
-    } else {
-      toast({
-        title: "Erro",
-        description: "Erro ao cadastrar material",
-        variant: "destructive"
-      });
-    }
-    
-    return success;
-  }, [isOnline, toast, createItem]);
+    // Mock implementation
+    console.log('Creating material:', material);
+    return true;
+  }, []);
 
   return {
-    materiais: data,
+    materiais,
     loading,
-    error,
-    isOnline,
-    hasData,
-    refreshMateriais: refresh,
+    error: null,
+    isOnline: true,
+    hasData: materiais.length > 0,
+    refreshMateriais: () => {},
     createMaterial
   };
 }
@@ -49,35 +67,21 @@ export function useMateriais() {
  * Hook padrão para transações (histórico compra/venda)
  */
 export function useTransacoes(limit = 50) {
-  const { data, loading, error, isOnline, hasData, refresh, createItem } = useDataService<Transacao>('transacoes');
-  const { toast } = useToast();
-
+  const { transacoes, loading } = useMockData();
+  
   const createTransacao = useCallback(async (transacao: Omit<Transacao, 'id'>) => {
-    const success = await createItem(transacao);
-    
-    if (success) {
-      toast({
-        title: "Transação registrada",
-        description: isOnline ? "Salva no servidor" : "Será sincronizada quando conectar"
-      });
-    } else {
-      toast({
-        title: "Erro",
-        description: "Erro ao registrar transação",
-        variant: "destructive"
-      });
-    }
-    
-    return success;
-  }, [isOnline, toast, createItem]);
+    // Mock implementation
+    console.log('Creating transacao:', transacao);
+    return true;
+  }, []);
 
   return {
-    transacoes: data,
+    transacoes: transacoes.slice(0, limit),
     loading,
-    error,
-    isOnline,
-    hasData,
-    refreshTransacoes: refresh,
+    error: null,
+    isOnline: true,
+    hasData: transacoes.length > 0,
+    refreshTransacoes: () => {},
     createTransacao
   };
 }
@@ -86,61 +90,34 @@ export function useTransacoes(limit = 50) {
  * Hook padrão para vales
  */
 export function useVales() {
-  const { data, loading, error, isOnline, hasData, refresh, createItem, updateItem } = useDataService<Vale>('vales');
-  const { toast } = useToast();
-
+  const { vales, loading } = useMockData();
+  
   const createVale = useCallback(async (vale: Omit<Vale, 'id'>) => {
-    const success = await createItem(vale);
-    
-    if (success) {
-      toast({
-        title: "Vale cadastrado",
-        description: isOnline ? "Salvo no servidor" : "Será sincronizado quando conectar"
-      });
-    } else {
-      toast({
-        title: "Erro",
-        description: "Erro ao cadastrar vale",
-        variant: "destructive"
-      });
-    }
-    
-    return success;
-  }, [isOnline, toast, createItem]);
+    // Mock implementation
+    console.log('Creating vale:', vale);
+    return true;
+  }, []);
 
   const updateValeStatus = useCallback(async (id: number, status: Vale['status']) => {
-    const success = await updateItem(id, { status });
-    
-    if (success) {
-      toast({
-        title: "Vale atualizado",
-        description: `Status alterado para: ${status}`
-      });
-    } else {
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar vale",
-        variant: "destructive"
-      });
-    }
-    
-    return success;
-  }, [toast, updateItem]);
+    // Mock implementation
+    console.log('Updating vale status:', id, status);
+    return true;
+  }, []);
 
   // Calcular vales pendentes
-  const valesPendentes = data.filter(vale => vale.status === 'pendente');
+  const valesPendentes = vales.filter(vale => vale.status === 'pendente');
   const totalPendente = valesPendentes.reduce((acc, vale) => acc + vale.valor, 0);
 
   return {
-    vales: data,
+    vales,
     valesPendentes,
     totalPendente,
     quantidadePendentes: valesPendentes.length,
     loading,
-    error,
-    isOnline,
-    hasData,
-    refreshVales: refresh,
+    error: null,
+    isOnline: true,
+    hasData: vales.length > 0,
+    refreshVales: () => {},
     createVale,
     updateValeStatus
   };
@@ -150,35 +127,21 @@ export function useVales() {
  * Hook padrão para despesas
  */
 export function useDespesas() {
-  const { data, loading, error, isOnline, hasData, refresh, createItem } = useDataService<Despesa>('despesas');
-  const { toast } = useToast();
-
+  const { despesas, loading } = useMockData();
+  
   const createDespesa = useCallback(async (despesa: Omit<Despesa, 'id'>) => {
-    const success = await createItem(despesa);
-    
-    if (success) {
-      toast({
-        title: "Despesa cadastrada",
-        description: isOnline ? "Salva no servidor" : "Será sincronizada quando conectar"
-      });
-    } else {
-      toast({
-        title: "Erro",
-        description: "Erro ao cadastrar despesa",
-        variant: "destructive"
-      });
-    }
-    
-    return success;
-  }, [isOnline, toast, createItem]);
+    // Mock implementation
+    console.log('Creating despesa:', despesa);
+    return true;
+  }, []);
 
   return {
-    despesas: data,
+    despesas,
     loading,
-    error,
-    isOnline,
-    hasData,
-    refreshDespesas: refresh,
+    error: null,
+    isOnline: true,
+    hasData: despesas.length > 0,
+    refreshDespesas: () => {},
     createDespesa
   };
 }

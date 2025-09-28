@@ -37,7 +37,7 @@ export default function Compra() {
         tipo: 'compra',
         material_id: parseInt(formData.materialId),
         peso,
-        valor: valorTotal,
+        valor_total: valorTotal,
       });
 
       // Reset form

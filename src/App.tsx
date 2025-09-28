@@ -12,6 +12,7 @@ import HistoricoComandas from "@/pages/HistoricoComandas";
 import TabelaPrecos from "@/pages/TabelaPrecos";
 import Estoque from "@/pages/Estoque";
 import Fechamento from "@/pages/Fechamento";
+import Ultimos from "@/pages/Ultimos";
 import NotFound from "@/pages/NotFound";
 import { MockDataProvider } from "@/contexts/MockDataContext";
 
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/tabela-precos" element={<TabelaPrecos />} />
           <Route path="/estoque" element={<Estoque />} />
           <Route path="/fechamento" element={<Fechamento />} />
+          <Route path="/ultimos" element={<Ultimos />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />

@@ -17,11 +17,11 @@ export default function Fechamento() {
 
   const totalCompras = transacoesHoje
     .filter(t => t.tipo === 'compra')
-    .reduce((acc, t) => acc + t.valor, 0);
+    .reduce((acc, t) => acc + t.valor_total, 0);
 
   const totalVendas = transacoesHoje
     .filter(t => t.tipo === 'venda')
-    .reduce((acc, t) => acc + t.valor, 0);
+    .reduce((acc, t) => acc + t.valor_total, 0);
 
   const lucro = totalVendas - totalCompras;
 
