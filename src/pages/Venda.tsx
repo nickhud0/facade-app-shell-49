@@ -139,7 +139,7 @@ export default function Venda() {
                   </div>
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total:</span>
-                    <span className="text-blue-600">R$ {valorTotal}</span>
+                    <span className="text-primary">R$ {valorTotal}</span>
                   </div>
                 </div>
               )}

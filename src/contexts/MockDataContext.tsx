@@ -45,15 +45,27 @@ interface Comanda {
   created_at: string;
 }
 
+interface Pendencia {
+  id: number;
+  tipo: 'Devemos' | 'Devem';
+  cliente: string;
+  valor: number;
+  observacao: string;
+  status: 'Pendente' | 'Pago';
+  created_at: string;
+}
+
 interface MockDataContextType {
   materiais: Material[];
   transacoes: Transacao[];
   vales: Vale[];
   despesas: Despesa[];
+  pendencias: Pendencia[];
   comandas: Comanda[];
   loading: boolean;
   addTransacao: (transacao: Omit<Transacao, 'id' | 'created_at'>) => void;
   addMaterial: (material: Omit<Material, 'id'>) => void;
+  addPendencia: (pendencia: Omit<Pendencia, 'id' | 'created_at'>) => void;
   isOnline: boolean;
 }
 
@@ -153,6 +165,36 @@ const mockDespesas: Despesa[] = [
   }
 ];
 
+const mockPendencias: Pendencia[] = [
+  {
+    id: 1,
+    tipo: "Devemos",
+    cliente: "Fornecedor ABC",
+    valor: 1250.80,
+    observacao: "Vencimento de boleto",
+    status: "Pendente",
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    tipo: "Devem",
+    cliente: "João Silva",
+    valor: 450.00,
+    observacao: "Pagamento de produto",
+    status: "Pendente",
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 3,
+    tipo: "Devemos",
+    cliente: "Conta de Luz",
+    valor: 485.50,
+    observacao: "Conta de energia elétrica",
+    status: "Pago",
+    created_at: new Date(Date.now() - 86400000).toISOString()
+  }
+];
+
 const mockComandas: Comanda[] = [
   {
     id: 1,
@@ -168,6 +210,7 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [transacoes, setTransacoes] = useState<Transacao[]>(mockTransacoes);
   const [vales, setVales] = useState<Vale[]>(mockVales);
   const [despesas, setDespesas] = useState<Despesa[]>(mockDespesas);
+  const [pendencias, setPendencias] = useState<Pendencia[]>(mockPendencias);
   const [comandas, setComandas] = useState<Comanda[]>(mockComandas);
   const [isOnline] = useState(true);
   const [loading] = useState(false);
@@ -191,6 +234,16 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     toast.success('Material cadastrado com sucesso!');
   };
 
+  const addPendencia = (pendencia: Omit<Pendencia, 'id' | 'created_at'>) => {
+    const newPendencia: Pendencia = {
+      ...pendencia,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+    };
+    setPendencias(prev => [newPendencia, ...prev]);
+    toast.success('Pendência cadastrada com sucesso!');
+  };
+
   return (
     <MockDataContext.Provider
       value={{
@@ -198,10 +251,12 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         transacoes,
         vales,
         despesas,
+        pendencias,
         comandas,
         loading,
         addTransacao,
         addMaterial,
+        addPendencia,
         isOnline,
       }}
     >

@@ -40,6 +40,16 @@ export interface Despesa {
   created_at: string;
 }
 
+export interface Pendencia {
+  id: number;
+  tipo: 'Devemos' | 'Devem';
+  cliente: string;
+  valor: number;
+  observacao: string;
+  status: 'Pendente' | 'Pago';
+  created_at: string;
+}
+
 /**
  * Hook padrão para materiais
  */
@@ -143,5 +153,47 @@ export function useDespesas() {
     hasData: despesas.length > 0,
     refreshDespesas: () => {},
     createDespesa
+  };
+}
+
+/**
+ * Hook padrão para pendências
+ */
+export function usePendencias() {
+  const { pendencias, loading } = useMockData();
+  
+  const createPendencia = useCallback(async (pendencia: Omit<Pendencia, 'id'>) => {
+    // Mock implementation
+    console.log('Creating pendencia:', pendencia);
+    return true;
+  }, []);
+
+  const updatePendenciaStatus = useCallback(async (id: number, status: Pendencia['status']) => {
+    // Mock implementation
+    console.log('Updating pendencia status:', id, status);
+    return true;
+  }, []);
+
+  // Calcular pendências por tipo
+  const pendenciasDevemos = pendencias.filter(p => p.tipo === 'Devemos' && p.status === 'Pendente');
+  const pendenciasDevem = pendencias.filter(p => p.tipo === 'Devem' && p.status === 'Pendente');
+  const totalDevemos = pendenciasDevemos.reduce((acc, p) => acc + p.valor, 0);
+  const totalDevem = pendenciasDevem.reduce((acc, p) => acc + p.valor, 0);
+
+  return {
+    pendencias,
+    pendenciasDevemos,
+    pendenciasDevem,
+    totalDevemos,
+    totalDevem,
+    quantidadeDevemos: pendenciasDevemos.length,
+    quantidadeDevem: pendenciasDevem.length,
+    loading,
+    error: null,
+    isOnline: true,
+    hasData: pendencias.length > 0,
+    refreshPendencias: () => {},
+    createPendencia,
+    updatePendenciaStatus
   };
 }

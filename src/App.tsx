@@ -13,6 +13,9 @@ import TabelaPrecos from "@/pages/TabelaPrecos";
 import Estoque from "@/pages/Estoque";
 import Fechamento from "@/pages/Fechamento";
 import Ultimos from "@/pages/Ultimos";
+import CadastrarMaterial from "@/pages/CadastrarMaterial";
+import CadastrarDespesa from "@/pages/CadastrarDespesa";
+import Pendencias from "@/pages/Pendencias";
 import NotFound from "@/pages/NotFound";
 import { MockDataProvider } from "@/contexts/MockDataContext";
 
@@ -33,6 +36,9 @@ export default function App() {
           <Route path="/estoque" element={<Estoque />} />
           <Route path="/fechamento" element={<Fechamento />} />
           <Route path="/ultimos" element={<Ultimos />} />
+          <Route path="/cadastrar-material" element={<CadastrarMaterial />} />
+          <Route path="/cadastrar-despesa" element={<CadastrarDespesa />} />
+          <Route path="/pendencias" element={<Pendencias />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />

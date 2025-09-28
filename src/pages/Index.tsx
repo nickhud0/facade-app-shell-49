@@ -18,16 +18,16 @@ import { Navigation } from '@/components/Navigation';
 import { useMockData } from '@/contexts/MockDataContext';
 
 const menuItems = [
-  { title: 'Compra', path: '/compra', icon: ShoppingCart, color: 'text-blue-600' },
-  { title: 'Venda', path: '/venda', icon: TrendingUp, color: 'text-green-600' },
-  { title: 'Histórico', path: '/historico', icon: History, color: 'text-purple-600' },
-  { title: 'Últimos', path: '/ultimos', icon: Clock, color: 'text-amber-600' },
-  { title: 'Estoque', path: '/estoque', icon: Package, color: 'text-orange-600' },
-  { title: 'Relatórios', path: '/relatorios', icon: FileText, color: 'text-red-600' },
-  { title: 'Vale', path: '/vale', icon: Calculator, color: 'text-indigo-600' },
-  { title: 'Tabela de Preços', path: '/tabela-precos', icon: Package2, color: 'text-teal-600' },
-  { title: 'Fechamento', path: '/fechamento', icon: Calculator, color: 'text-pink-600' },
-  { title: 'Configurações', path: '/configuracoes', icon: Settings, color: 'text-gray-600' },
+  { title: 'Compra', path: '/compra', icon: ShoppingCart, color: 'text-primary' },
+  { title: 'Venda', path: '/venda', icon: TrendingUp, color: 'text-success' },
+  { title: 'Histórico', path: '/historico', icon: History, color: 'text-accent' },
+  { title: 'Últimos', path: '/ultimos', icon: Clock, color: 'text-warning' },
+  { title: 'Estoque', path: '/estoque', icon: Package, color: 'text-primary' },
+  { title: 'Relatórios', path: '/relatorios', icon: FileText, color: 'text-destructive' },
+  { title: 'Vale', path: '/vale', icon: Calculator, color: 'text-accent' },
+  { title: 'Tabela de Preços', path: '/tabela-precos', icon: Package2, color: 'text-primary' },
+  { title: 'Fechamento', path: '/fechamento', icon: Calculator, color: 'text-success' },
+  { title: 'Configurações', path: '/configuracoes', icon: Settings, color: 'text-muted-foreground' },
 ];
 
 export default function Index() {
@@ -48,7 +48,7 @@ export default function Index() {
             Gestão completa de materiais recicláveis
           </p>
           <div className="flex items-center justify-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-orange-500'}`} />
+            <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-success' : 'bg-warning'}`} />
             <span className="text-xs text-muted-foreground">
               {isOnline ? 'Online' : 'Offline'}
             </span>

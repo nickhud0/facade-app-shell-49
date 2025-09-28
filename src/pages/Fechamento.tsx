@@ -58,25 +58,25 @@ export default function Fechamento() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-green-600">
+              <div className="text-center p-4 bg-success/10 rounded-lg">
+                <TrendingUp className="h-8 w-8 text-success mx-auto mb-2" />
+                <p className="text-2xl font-bold text-success">
                   R$ {totalVendas.toFixed(2)}
                 </p>
                 <p className="text-sm text-muted-foreground">Receitas</p>
               </div>
               
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <DollarSign className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-blue-600">
+              <div className="text-center p-4 bg-primary/10 rounded-lg">
+                <DollarSign className="h-8 w-8 text-primary mx-auto mb-2" />
+                <p className="text-2xl font-bold text-primary">
                   R$ {totalCompras.toFixed(2)}
                 </p>
                 <p className="text-sm text-muted-foreground">Compras</p>
               </div>
               
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <Calculator className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-purple-600">
+              <div className="text-center p-4 bg-accent/10 rounded-lg">
+                <Calculator className="h-8 w-8 text-accent mx-auto mb-2" />
+                <p className="text-2xl font-bold text-accent">
                   R$ {lucro.toFixed(2)}
                 </p>
                 <p className="text-sm text-muted-foreground">Lucro</p>

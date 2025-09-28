@@ -195,12 +195,12 @@ export default function PrinterManager({ open, onOpenChange, onPrinterConnected 
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-medium">Status da Conexão</h4>
               {isConnected ? (
-                <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                <Badge variant="default" className="bg-success/20 text-success">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   Conectada
                 </Badge>
               ) : (
-                <Badge variant="outline" className="border-red-200 text-red-600 dark:border-red-800 dark:text-red-400">
+                <Badge variant="outline" className="border-destructive/20 text-destructive">
                   <XCircle className="w-3 h-3 mr-1" />
                   Desconectada
                 </Badge>
@@ -284,7 +284,7 @@ export default function PrinterManager({ open, onOpenChange, onPrinterConnected 
                           Conectando...
                         </Badge>
                       ) : connectedDevice?.name === device.name && isConnected ? (
-                        <Badge variant="default" className="bg-green-100 text-green-800">
+                        <Badge variant="default" className="bg-success/20 text-success">
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Conectada
                         </Badge>

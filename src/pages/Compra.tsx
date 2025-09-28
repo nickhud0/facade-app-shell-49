@@ -139,7 +139,7 @@ export default function Compra() {
                   </div>
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total:</span>
-                    <span className="text-green-600">R$ {valorTotal}</span>
+                    <span className="text-success">R$ {valorTotal}</span>
                   </div>
                 </div>
               )}
