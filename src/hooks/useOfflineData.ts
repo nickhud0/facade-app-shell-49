@@ -3,7 +3,6 @@ import { databaseService, Material, Transacao, Vale, Despesa, Pendencia, Comanda
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
 
 export interface UseOfflineDataReturn<T> {
   data: T[];
@@ -257,7 +256,7 @@ export function useOfflineData<T>(dataType: DataType): UseOfflineDataReturn<T> {
       
       // Se voltou online e era offline antes, sincronizar automaticamente
       if (status.connected && wasOffline && supabaseService.getConnectionStatus()) {
-        logger.debug(`Auto-syncing ${dataType} after coming back online...`);
+        console.log(`Auto-syncing ${dataType} after coming back online...`);
         syncFromServer().catch(err => 
           console.error(`Error auto-syncing ${dataType}:`, err)
         );

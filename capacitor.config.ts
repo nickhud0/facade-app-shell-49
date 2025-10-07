@@ -45,10 +45,7 @@ const config: CapacitorConfig = {
       'android.permission.ACCESS_COARSE_LOCATION',
       'android.permission.ACCESS_FINE_LOCATION',
       'android.permission.BLUETOOTH_CONNECT',
-      'android.permission.BLUETOOTH_SCAN',
-      'android.permission.BLUETOOTH_ADVERTISE',
-      'android.permission.WRITE_EXTERNAL_STORAGE',
-      'android.permission.READ_EXTERNAL_STORAGE'
+      'android.permission.BLUETOOTH_SCAN'
     ]
   }
 };

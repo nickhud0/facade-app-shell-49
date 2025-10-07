@@ -1,32 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bluetooth, CheckCircle, XCircle, AlertCircle, Printer, Scan } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
+import { Bluetooth, Printer, Wifi, WifiOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { thermalPrinterService } from '@/services/thermalPrinterService';
-import { logger } from '@/utils/logger';
-import { Capacitor, registerPlugin } from '@capacitor/core';
-
-// Import ThermalPrinter plugin for direct usage
-const ThermalPrinter = registerPlugin<any>('ThermalPrinter');
+import { toast } from 'sonner';
 
 interface BluetoothDevice {
   name: string;
-  address?: string;
+  address: string;
+  class?: number;
 }
 
 interface PrinterManagerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPrinterConnected?: (device: BluetoothDevice) => void;
+  onPrinterConnected?: () => void;
 }
 
-export default function PrinterManager({ open, onOpenChange, onPrinterConnected }: PrinterManagerProps) {
+const PrinterManager = ({ open, onOpenChange, onPrinterConnected }: PrinterManagerProps) => {
   const [devices, setDevices] = useState<BluetoothDevice[]>([]);
   const [scanning, setScanning] = useState(false);
-  const [connecting, setConnecting] = useState(false);
+  const [connecting, setConnecting] = useState<string | null>(null);
   const [connectedDevice, setConnectedDevice] = useState<BluetoothDevice | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -41,17 +38,23 @@ export default function PrinterManager({ open, onOpenChange, onPrinterConnected 
     try {
       const connected = await thermalPrinterService.isConnected();
       setIsConnected(connected);
+      
+      if (connected) {
+        const savedDevice = localStorage.getItem('thermal_printer_device');
+        if (savedDevice) {
+          setConnectedDevice(JSON.parse(savedDevice));
+        }
+      }
     } catch (error) {
       setIsConnected(false);
     }
   };
 
   const loadSavedDevice = () => {
-    const savedDevice = localStorage.getItem('thermal_printer_device');
-    if (savedDevice) {
+    const saved = localStorage.getItem('thermal_printer_device');
+    if (saved) {
       try {
-        const device = JSON.parse(savedDevice);
-        setConnectedDevice(device);
+        setConnectedDevice(JSON.parse(saved));
       } catch (error) {
         localStorage.removeItem('thermal_printer_device');
       }
@@ -60,95 +63,59 @@ export default function PrinterManager({ open, onOpenChange, onPrinterConnected 
 
   const scanForDevices = async () => {
     setScanning(true);
-    setDevices([]);
-    
     try {
-      // Check permissions first
-      const hasPermission = await thermalPrinterService.requestPermissions();
-      if (!hasPermission) {
-        toast({
-          title: "Permissão negada",
-          description: "Permissão Bluetooth é necessária para buscar impressoras.",
-          variant: "destructive",
-        });
-        setScanning(false);
-        return;
-      }
-
-      const foundDevices = await thermalPrinterService.listPrinters();
-      setDevices(foundDevices || []);
+      toast.loading('Procurando impressoras...', { id: 'scan' });
       
-      if (!foundDevices || foundDevices.length === 0) {
-        toast({
-          title: "Nenhuma impressora encontrada",
-          description: "Certifique-se de que a impressora está ligada e em modo de pareamento.",
-          variant: "destructive",
-        });
+      const foundDevices = await thermalPrinterService.listPrinters();
+      setDevices(foundDevices);
+      
+      if (foundDevices.length === 0) {
+        toast.info('Nenhuma impressora encontrada', { id: 'scan' });
       } else {
-        toast({
-          title: "Impressoras encontradas",
-          description: `${foundDevices.length} impressora(s) disponível(is).`,
-        });
+        toast.success(`${foundDevices.length} impressora(s) encontrada(s)`, { id: 'scan' });
       }
     } catch (error) {
-      logger.debug('Erro ao buscar impressoras:', error);
-      toast({
-        title: "Erro ao buscar impressoras",
-        description: error instanceof Error ? error.message : "Verifique se o Bluetooth está ativado e tente novamente.",
-        variant: "destructive",
-      });
+      console.error('Erro ao buscar impressoras:', error);
+      toast.error('Erro ao buscar impressoras', { id: 'scan' });
     } finally {
       setScanning(false);
     }
   };
 
   const connectToDevice = async (device: BluetoothDevice) => {
-    setConnecting(true);
-    
+    setConnecting(device.address);
     try {
-      await ThermalPrinter.connect({ name: device.name });
+      toast.loading(`Conectando à ${device.name}...`, { id: 'connect' });
       
-      setConnectedDevice(device);
-      setIsConnected(true);
+      const success = await thermalPrinterService.connectPrinter(device.address);
       
-      // Save device to localStorage
-      localStorage.setItem('thermal_printer_device', JSON.stringify(device));
-      
-      toast({
-        title: "Conectado com sucesso",
-        description: `Conectado à impressora ${device.name}.`,
-      });
-      
-      onPrinterConnected?.(device);
+      if (success) {
+        setConnectedDevice(device);
+        setIsConnected(true);
+        localStorage.setItem('thermal_printer_device', JSON.stringify(device));
+        toast.success(`Conectado à ${device.name}`, { id: 'connect' });
+        onPrinterConnected?.();
+      } else {
+        toast.error('Falha na conexão', { id: 'connect' });
+      }
     } catch (error) {
-      logger.debug('Erro ao conectar:', error);
-      toast({
-        title: "Erro ao conectar",
-        description: "Não foi possível conectar à impressora. Tente novamente.",
-        variant: "destructive",
-      });
+      console.error('Erro ao conectar:', error);
+      toast.error('Erro ao conectar com a impressora', { id: 'connect' });
     } finally {
-      setConnecting(false);
+      setConnecting(null);
     }
   };
 
   const disconnect = async () => {
     try {
-      await ThermalPrinter.disconnect();
-      setIsConnected(false);
+      await thermalPrinterService.disconnect();
       setConnectedDevice(null);
-      
-      toast({
-        title: "Desconectado",
-        description: "Impressora desconectada com sucesso.",
-      });
+      setIsConnected(false);
+      localStorage.removeItem('thermal_printer_device');
+      toast.success('Impressora desconectada');
     } catch (error) {
-      logger.debug('Erro ao desconectar:', error);
-      toast({
-        title: "Erro ao desconectar",
-        description: "Erro ao desconectar da impressora.",
-        variant: "destructive",
-      });
+      console.error('Erro ao desconectar:', error);
+      toast.error('Erro ao desconectar');
     }
   };
 
@@ -158,134 +125,118 @@ export default function PrinterManager({ open, onOpenChange, onPrinterConnected 
     }
   };
 
-  const printTest = async () => {
-    try {
-      await thermalPrinterService.printTest();
-      
-      toast({
-        title: "Teste impresso",
-        description: "Teste de impressão enviado com sucesso.",
-      });
-    } catch (error) {
-      logger.debug('Erro no teste:', error);
-      toast({
-        title: "Erro no teste",
-        description: "Não foi possível imprimir o teste.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Bluetooth className="h-5 w-5" />
-            Gerenciar Impressora Térmica
+            Gerenciar Impressora
           </DialogTitle>
-          <DialogDescription>
-            Conecte sua impressora térmica via Bluetooth para imprimir comandas
-          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Status da Conexão */}
-          <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Status atual */}
+          <Card className="p-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Status da Conexão</h4>
+              <div className="flex items-center gap-2">
+                <Printer className="h-4 w-4" />
+                <span className="font-medium">Status da Conexão</span>
+              </div>
               {isConnected ? (
-                <Badge variant="default" className="bg-success/20 text-success">
-                  <CheckCircle className="w-3 h-3 mr-1" />
+                <Badge variant="default" className="bg-green-100 text-green-800">
+                  <CheckCircle className="h-3 w-3 mr-1" />
                   Conectada
                 </Badge>
               ) : (
-                <Badge variant="outline" className="border-destructive/20 text-destructive">
-                  <XCircle className="w-3 h-3 mr-1" />
+                <Badge variant="outline" className="border-red-200 text-red-600">
+                  <AlertCircle className="h-3 w-3 mr-1" />
                   Desconectada
                 </Badge>
               )}
             </div>
 
             {connectedDevice && (
-              <Card>
-                <CardContent className="pt-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">{connectedDevice.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {connectedDevice.address || 'Endereço não disponível'}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      {isConnected && (
-                        <Button variant="outline" size="sm" onClick={printTest}>
-                          <Printer className="w-3 h-3 mr-1" />
-                          Teste
-                        </Button>
-                      )}
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={isConnected ? disconnect : reconnect}
-                      >
-                        {isConnected ? 'Desconectar' : 'Reconectar'}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="mt-3 pt-3 border-t">
+                <div className="text-sm text-muted-foreground">
+                  Impressora: <span className="font-medium">{connectedDevice.name}</span>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Endereço: <span className="font-mono text-xs">{connectedDevice.address}</span>
+                </div>
+                <div className="flex gap-2 mt-3">
+                  {isConnected ? (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={disconnect}
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      <WifiOff className="h-3 w-3 mr-1" />
+                      Desconectar
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={reconnect}
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    >
+                      <Wifi className="h-3 w-3 mr-1" />
+                      Reconectar
+                    </Button>
+                  )}
+                </div>
+              </div>
             )}
-          </div>
+          </Card>
 
-          {/* Impressoras Disponíveis */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Impressoras Disponíveis</h4>
+          <Separator />
+
+          {/* Buscar impressoras */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-medium">Impressoras Disponíveis</h3>
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={scanForDevices}
+                onClick={scanForDevices} 
                 disabled={scanning}
               >
-                <Scan className="w-3 h-3 mr-1" />
+                <Bluetooth className="h-3 w-3 mr-1" />
                 {scanning ? 'Buscando...' : 'Buscar'}
               </Button>
             </div>
 
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {devices.length === 0 ? (
-                <Card>
-                  <CardContent className="flex flex-col items-center justify-center py-6">
-                    <Bluetooth className="w-8 h-8 text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground text-center">
-                      Nenhuma impressora encontrada
-                    </p>
-                    <p className="text-xs text-muted-foreground text-center mt-1">
-                      Certifique-se de que a impressora está ligada e em modo de pareamento
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="text-center py-6 text-muted-foreground">
+                  <Bluetooth className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Nenhuma impressora encontrada</p>
+                  <p className="text-xs">Certifique-se que a impressora está ligada e em modo de pareamento</p>
+                </div>
               ) : (
                 devices.map((device, index) => (
                   <Card 
-                    key={`${device.name}-${index}`}
-                    className="hover:bg-accent cursor-pointer transition-colors"
+                    key={`${device.address}-${index}`} 
+                    className="p-3 hover:bg-accent/50 cursor-pointer transition-colors"
                     onClick={() => connectToDevice(device)}
                   >
-                    <CardContent className="flex items-center justify-between py-3">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <span className="font-medium">{device.name}</span>
-                        <span className="text-sm text-muted-foreground">{device.address || 'Endereço não disponível'}</span>
+                        <div className="font-medium text-sm">{device.name}</div>
+                        <div className="text-xs text-muted-foreground font-mono">
+                          {device.address}
+                        </div>
                       </div>
-                      {connecting ? (
-                        <Badge variant="outline">
-                          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin mr-1" />
+                      {connecting === device.address ? (
+                        <Badge variant="outline" className="text-blue-600">
+                          <div className="animate-spin h-3 w-3 border border-current border-t-transparent rounded-full mr-1" />
                           Conectando...
                         </Badge>
-                      ) : connectedDevice?.name === device.name && isConnected ? (
-                        <Badge variant="default" className="bg-success/20 text-success">
-                          <CheckCircle className="w-3 h-3 mr-1" />
+                      ) : connectedDevice?.address === device.address && isConnected ? (
+                        <Badge variant="default" className="bg-green-100 text-green-800">
+                          <CheckCircle className="h-3 w-3 mr-1" />
                           Conectada
                         </Badge>
                       ) : (
@@ -293,31 +244,28 @@ export default function PrinterManager({ open, onOpenChange, onPrinterConnected 
                           Conectar
                         </Button>
                       )}
-                    </CardContent>
+                    </div>
                   </Card>
                 ))
               )}
             </div>
           </div>
 
-          {/* Dicas */}
-          <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-            <CardContent className="py-3">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Dicas para conexão:</p>
-                  <ul className="text-xs text-blue-700 dark:text-blue-300 mt-1 space-y-1">
-                    <li>• Mantenha a impressora ligada e próxima</li>
-                    <li>• Ative o Bluetooth do dispositivo</li>
-                    <li>• Coloque a impressora em modo de pareamento</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
+          {/* Instruções */}
+          <Card className="p-3 bg-blue-50 border-blue-200">
+            <div className="text-sm text-blue-800">
+              <p className="font-medium mb-1">💡 Dicas:</p>
+              <ul className="text-xs space-y-1">
+                <li>• Mantenha a impressora ligada e próxima ao dispositivo</li>
+                <li>• Ative o Bluetooth nas configurações do Android</li>
+                <li>• A impressora ficará salva para próximas impressões</li>
+              </ul>
+            </div>
           </Card>
         </div>
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default PrinterManager;

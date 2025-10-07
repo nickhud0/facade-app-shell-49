@@ -3,7 +3,6 @@ import { databaseService, Comanda, ComandaItem } from '@/services/database';
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
 
 export interface UseComandaAtualReturn {
   comandaAtual: Comanda | null;
@@ -47,7 +46,7 @@ export function useComandaAtual(): UseComandaAtualReturn {
         return false;
       }
 
-      const now = new Date();
+      const now = new Date().toISOString();
       const numeroComanda = `CMD-${Date.now()}`;
       
       const novaComanda: Comanda = {
@@ -60,8 +59,8 @@ export function useComandaAtual(): UseComandaAtualReturn {
         dispositivo: 'Local',
         observacoes: undefined,
         itens: [],
-        created_at: now.toISOString(),
-        updated_at: now.toISOString()
+        created_at: now,
+        updated_at: now
       };
 
       // Salvar no cache local
@@ -208,7 +207,7 @@ export function useComandaAtual(): UseComandaAtualReturn {
       if (isOnline && supabaseService.getConnectionStatus()) {
         const syncResult = await supabaseService.processSyncQueue();
         if (syncResult.success > 0) {
-          logger.debug('Comanda sincronizada com sucesso');
+          console.log('Comanda sincronizada com sucesso');
         }
       }
 

@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
 
 export interface ItemEstoque {
   material_id: number;
@@ -190,7 +189,7 @@ export function useEstoqueData(): UseEstoqueDataReturn {
       
       // Se voltou online, atualizar dados automaticamente
       if (status.connected && wasOffline && supabaseService.getConnectionStatus()) {
-        logger.debug('Auto-refreshing estoque data after coming back online...');
+        console.log('Auto-refreshing estoque data after coming back online...');
         loadEstoqueData().catch(err => 
           console.error('Error auto-refreshing estoque data:', err)
         );

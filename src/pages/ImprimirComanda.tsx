@@ -3,11 +3,9 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import React, { useEffect, useState } from "react";
-import { logger } from '@/utils/logger';
-import { notifyError } from '@/utils/errorHandler';
+import { useEffect, useState } from "react";
 import { pdfService, ComandaParaPDF } from "@/services/print/pdfService";
-import { gerarPDF, abrirPDF } from "@/services/pdfService";
+import { gerarPDF } from "@/services/pdfService";
 import { thermalPrinterService } from "@/services/thermalPrinterService";
 import { useComandasOffline } from "@/hooks/useComandasOffline";
 import { Comanda } from "@/services/database";
@@ -15,8 +13,6 @@ import { toast } from "sonner";
 import { formatarCodigoComanda } from "@/utils/comandaCode";
 import PrinterManager from "@/components/PrinterManager";
 import { shareComandaWhatsApp } from "@/services/shareWhatsApp";
-
-import { formatCurrency } from "@/utils/formatters";
 
 // Função para agrupar materiais iguais
 const agruparMateriais = (itens: any[]) => {
@@ -124,7 +120,8 @@ const ImprimirComanda = () => {
             setComanda(null);
           }
         } catch (error) {
-          notifyError(error, 'Carregar Comanda');
+          console.error('Erro ao carregar comanda:', error);
+          toast.error('Erro ao carregar comanda');
           setComanda(null);
         } finally {
           setCarregando(false);
@@ -156,17 +153,13 @@ const ImprimirComanda = () => {
         return;
       }
 
-      toast.loading('Gerando PDF...', { id: 'download-pdf' });
+      const pdf = pdfService.generateComandaPDF(comanda);
+      pdf.save(`comanda-${comanda.numero}.pdf`);
       
-      // Gera e salva o PDF usando o novo serviço
-      const pdfPath = await gerarPDF(comanda);
-      
-      // Abre o PDF no visualizador do sistema
-      await abrirPDF(pdfPath);
-      
-      toast.success('PDF salvo e aberto com sucesso!', { id: 'download-pdf' });
+      toast.success('PDF baixado com sucesso!');
     } catch (error) {
-      notifyError(error, 'Baixar PDF');
+      console.error('Erro ao baixar PDF:', error);
+      toast.error('Erro ao baixar PDF');
     }
   };
 
@@ -190,7 +183,8 @@ const ImprimirComanda = () => {
       
       toast.success('Compartilhamento iniciado!', { id: 'whatsapp-share' });
     } catch (error) {
-      notifyError(error, 'Compartilhar WhatsApp');
+      console.error('Erro ao gerar ou compartilhar PDF:', error);
+      toast.error('Erro ao compartilhar no WhatsApp', { id: 'whatsapp-share' });
     }
   };
 
@@ -201,19 +195,28 @@ const ImprimirComanda = () => {
     }
 
     try {
-      toast.loading('Verificando impressora...', { id: 'print-comanda' });
-
-      // Use the thermal printer service with proper error handling
-      await thermalPrinterService.printComanda(comanda);
+      // Check if printer is connected
+      const connected = await thermalPrinterService.isConnected();
       
-      toast.success('Comanda impressa com sucesso!', { id: 'print-comanda' });
-    } catch (error) {
-      toast.error('Erro ao imprimir comanda', { id: 'print-comanda' });
-      
-      // If printing fails, offer to open printer manager
-      if (error instanceof Error && error.message.includes('conectar')) {
+      if (!connected) {
+        toast.error('Impressora não conectada. Configure primeiro.');
         setShowPrinterManager(true);
+        return;
       }
+
+      toast.loading('Imprimindo comanda...', { id: 'printer' });
+      
+      const success = await thermalPrinterService.printComanda(comanda);
+      
+      if (success) {
+        toast.success('Comanda impressa com sucesso!', { id: 'printer' });
+      } else {
+        toast.error('Erro ao imprimir comanda', { id: 'printer' });
+      }
+    } catch (error) {
+      console.error('Erro ao imprimir:', error);
+      toast.error('Erro ao conectar com a impressora. Verifique a conexão.', { id: 'printer' });
+      setShowPrinterManager(true);
     }
   };
 
@@ -318,10 +321,10 @@ const ImprimirComanda = () => {
               <div className="flex justify-between">
                 <span>{item.produto}</span>
               </div>
-               <div className="flex justify-between ml-2">
-                 <span>{item.quantidade}x {formatCurrency(item.precoUnitario)}</span>
-                 <span className="font-bold">{formatCurrency(item.total)}</span>
-               </div>
+              <div className="flex justify-between ml-2">
+                <span>{item.quantidade}x R$ {item.precoUnitario.toFixed(2)}</span>
+                <span className="font-bold">R$ {item.total.toFixed(2)}</span>
+              </div>
             </div>
           ))}
         </div>
@@ -330,10 +333,10 @@ const ImprimirComanda = () => {
 
         {/* Total */}
         <div className="space-y-1 text-sm">
-           <div className="flex justify-between font-bold text-base">
-             <span>TOTAL:</span>
-             <span>{formatCurrency(comanda.total)}</span>
-           </div>
+          <div className="flex justify-between font-bold text-base">
+            <span>TOTAL:</span>
+            <span>R$ {comanda.total.toFixed(2)}</span>
+          </div>
         </div>
 
         <Separator className="my-4 border-dashed border-black" />

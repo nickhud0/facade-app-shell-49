@@ -1,8 +1,6 @@
 import { databaseService } from './database';
 import { databaseV2Service } from './databaseV2';
 import { Comanda } from './database';
-import { logger } from '@/utils/logger';
-import { toYMD } from '@/utils/formatters';
 
 interface MigrationStatus {
   version: number;
@@ -23,7 +21,7 @@ class MigrationService {
     return {
       version: 1,
       migrated: false,
-      lastMigration: toYMD(new Date())
+      lastMigration: new Date().toISOString()
     };
   }
 
@@ -37,7 +35,7 @@ class MigrationService {
   }
 
   async migrateToV2(): Promise<void> {
-    logger.debug('Iniciando migração para v2...');
+    console.log('Iniciando migração para v2...');
     
     try {
       // Migrar comandas do formato antigo para o novo
@@ -58,8 +56,8 @@ class MigrationService {
             total: comanda.total,
             status: comanda.status === 'ativa' ? 'aberta' : comanda.status,
             cliente: comanda.cliente,
-            created_at: comanda.created_at || toYMD(new Date()),
-            updated_at: comanda.updated_at || toYMD(new Date())
+            created_at: comanda.created_at || new Date().toISOString(),
+            updated_at: comanda.updated_at || new Date().toISOString()
           },
           comanda.itens.map(item => ({
             material_id: item.id,
@@ -73,16 +71,16 @@ class MigrationService {
 
       // Migrar materiais se existirem - removendo para evitar erros de método não existente
       // A migração de materiais pode ser implementada posteriormente conforme necessário
-      logger.debug('Migração de materiais pulada - será implementada posteriormente');
+      console.log('Migração de materiais pulada - será implementada posteriormente');
 
       // Atualizar status da migração
       await this.setMigrationStatus({
         version: this.CURRENT_VERSION,
         migrated: true,
-        lastMigration: toYMD(new Date())
+        lastMigration: new Date().toISOString()
       });
 
-      logger.debug('Migração para v2 concluída com sucesso');
+      console.log('Migração para v2 concluída com sucesso');
     } catch (error) {
       console.error('Erro na migração para v2:', error);
       throw error;

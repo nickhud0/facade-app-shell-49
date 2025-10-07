@@ -4,7 +4,6 @@ import { databaseV2Service } from '@/services/databaseV2';
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
 
 export interface UseComandasOfflineReturn {
   // Cache local (últimas 20)
@@ -279,7 +278,7 @@ export function useComandasOffline(): UseComandasOfflineReturn {
       
       // Se voltou online, sincronizar automaticamente
       if (status.connected && wasOffline && supabaseService.getConnectionStatus()) {
-        logger.debug('Auto-syncing comandas after coming back online...');
+        console.log('Auto-syncing comandas after coming back online...');
         syncPendingComandas().catch(err => 
           console.error('Error auto-syncing comandas:', err)
         );

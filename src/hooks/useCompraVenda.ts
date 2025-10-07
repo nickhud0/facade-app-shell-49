@@ -3,8 +3,6 @@ import { databaseService, Material } from '@/services/database';
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
-import { toYMD } from '@/utils/formatters';
 
 export interface UseCompraVendaReturn {
   materiais: Material[];
@@ -57,7 +55,7 @@ export function useCompraVenda(): UseCompraVendaReturn {
         categoria: item.categoria_material,
         preco_compra_kg: item.preco_compra,
         preco_venda_kg: item.preco_venda,
-        created_at: toYMD(new Date()),
+        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }));
 
@@ -142,7 +140,7 @@ export function useCompraVenda(): UseCompraVendaReturn {
       
       // Se voltou online, sincronizar automaticamente
       if (status.connected && wasOffline && supabaseService.getConnectionStatus()) {
-        logger.debug('Auto-syncing materials after coming back online...');
+        console.log('Auto-syncing materials after coming back online...');
         syncFromServer().catch(err => 
           console.error('Error auto-syncing materials:', err)
         );

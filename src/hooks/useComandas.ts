@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useComandasOffline } from '@/hooks/useComandasOffline';
 import { Comanda as ComandaDB } from '@/services/database';
-import { toYMD } from '@/utils/formatters';
 
 export interface ItemComanda {
   id: number;
@@ -35,7 +34,7 @@ export const useComandas = () => {
         const comanda = JSON.parse(comandaStorage);
         setComandaAtual(comanda);
       } catch (error) {
-        // Erro será ignorado silenciosamente para evitar logs desnecessários
+        console.error('Erro ao carregar comanda do localStorage:', error);
       }
     }
   }, []);
@@ -124,7 +123,7 @@ export const useComandas = () => {
         const comandaHistorico = {
           id: Date.now(),
           numero: codigoCompleto,
-          data: toYMD(new Date()),
+          data: new Date().toISOString().split('T')[0],
           horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
           total: comandaAtual.total,
           itens: comandaAtual.itens.length,
@@ -149,7 +148,7 @@ export const useComandas = () => {
       
       return false;
     } catch (error) {
-      // Erro será tratado pelo retorno false
+      console.error('Erro ao finalizar comanda:', error);
       return false;
     }
   };

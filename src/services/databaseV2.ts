@@ -1,6 +1,5 @@
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
 import { Capacitor } from '@capacitor/core';
-import { logger } from '@/utils/logger';
 
 // Interfaces melhoradas com versionamento
 export interface SyncQueueItem {
@@ -95,7 +94,7 @@ class DatabaseV2Service {
       await this.db.open();
       await this.createTables();
       
-      logger.debug('Database V2 initialized successfully');
+      console.log('Database V2 initialized successfully');
     } catch (error) {
       console.error('Error initializing database V2:', error);
       throw error;

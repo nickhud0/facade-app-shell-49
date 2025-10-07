@@ -1,104 +1,213 @@
-import React from 'react';
-import { Navigation } from '@/components/Navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Calculator, TrendingUp, DollarSign } from 'lucide-react';
-import { useMockData } from '@/contexts/MockDataContext';
-import { toast } from 'sonner';
+import { ArrowLeft, Calculator, DollarSign, FileText, Calendar, ChevronDown } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useState } from "react";
+import { useFechamento } from "@/hooks/useFechamento";
+import { NetworkStatus } from "@/components/NetworkStatus";
 
-export default function Fechamento() {
-  const { transacoes } = useMockData();
+// Dados mock do histórico de fechamentos
+const historicoFechamentos = [
+  {
+    id: 1,
+    data: "28/02/2025",
+    receitas: 1850.30,
+    compras: 750.00,
+    despesas: 120.00,
+    lucro: 980.30,
+    observacoes: "Vendas normais para o período"
+  },
+  {
+    id: 2,
+    data: "27/02/2025",
+    receitas: 2200.80,
+    compras: 900.00,
+    despesas: 180.00,
+    lucro: 1120.80,
+    observacoes: "Fim de semana com movimento intenso"
+  },
+  {
+    id: 3,
+    data: "26/02/2025",
+    receitas: 1680.50,
+    compras: 650.00,
+    despesas: 95.00,
+    lucro: 935.50,
+    observacoes: ""
+  }
+];
 
-  // Calcular totais do dia
-  const hoje = new Date().toDateString();
-  const transacoesHoje = transacoes.filter(t => 
-    new Date(t.created_at).toDateString() === hoje
-  );
-
-  const totalCompras = transacoesHoje
-    .filter(t => t.tipo === 'compra')
-    .reduce((acc, t) => acc + t.valor_total, 0);
-
-  const totalVendas = transacoesHoje
-    .filter(t => t.tipo === 'venda')
-    .reduce((acc, t) => acc + t.valor_total, 0);
-
-  const lucro = totalVendas - totalCompras;
-
-  const handleRealizarFechamento = () => {
-    // Simular fechamento
-    const fechamento = {
-      id: Date.now(),
-      data: new Date().toISOString(),
-      totalCompras,
-      totalVendas,
-      lucro,
-      transacoes: transacoesHoje.length
-    };
-
-    const fechamentos = JSON.parse(localStorage.getItem('fechamentos') || '[]');
-    fechamentos.unshift(fechamento);
-    localStorage.setItem('fechamentos', JSON.stringify(fechamentos));
-
-    toast.success('Fechamento realizado com sucesso!');
-  };
+const Fechamento = () => {
+  const navigate = useNavigate();
+  const [observacoes, setObservacoes] = useState("");
+  const { dadosAtual, hasData } = useFechamento();
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation title="Fechamento do Dia" />
-      
-      <div className="p-4 space-y-6">
-        {/* Resumo do Período */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5" />
-              Período Atual - {new Date().toLocaleDateString('pt-BR')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-success/10 rounded-lg">
-                <TrendingUp className="h-8 w-8 text-success mx-auto mb-2" />
-                <p className="text-2xl font-bold text-success">
-                  R$ {totalVendas.toFixed(2)}
-                </p>
-                <p className="text-sm text-muted-foreground">Receitas</p>
+    <div className="min-h-screen bg-background p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <Button variant="ghost" size="sm" className="mr-3" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-2xl font-bold text-foreground">Fechamento</h1>
+        </div>
+        <NetworkStatus />
+      </div>
+
+      {/* Período Atual */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Calendar className="mr-2 h-5 w-5" />
+            Período Atual
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-6">
+            Último fechamento: {dadosAtual.ultimoFechamento}
+          </p>
+
+          {/* Valores Consolidados */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-3 rounded-lg bg-success/10">
+                <span className="font-medium">Receitas (Vendas)</span>
+                <span className="font-bold text-lg text-success">
+                  R$ {dadosAtual.receitas.toFixed(2)}
+                </span>
               </div>
               
-              <div className="text-center p-4 bg-primary/10 rounded-lg">
-                <DollarSign className="h-8 w-8 text-primary mx-auto mb-2" />
-                <p className="text-2xl font-bold text-primary">
-                  R$ {totalCompras.toFixed(2)}
-                </p>
-                <p className="text-sm text-muted-foreground">Compras</p>
-              </div>
-              
-              <div className="text-center p-4 bg-accent/10 rounded-lg">
-                <Calculator className="h-8 w-8 text-accent mx-auto mb-2" />
-                <p className="text-2xl font-bold text-accent">
-                  R$ {lucro.toFixed(2)}
-                </p>
-                <p className="text-sm text-muted-foreground">Lucro</p>
+              <div className="flex justify-between items-center p-3 rounded-lg bg-destructive/10">
+                <span className="font-medium">Compras</span>
+                <span className="font-bold text-lg text-destructive">
+                  R$ {dadosAtual.compras.toFixed(2)}
+                </span>
               </div>
             </div>
 
-            <div className="pt-4">
-              <p className="text-center text-muted-foreground mb-4">
-                Total de transações: {transacoesHoje.length}
-              </p>
-              
-              <Button 
-                onClick={handleRealizarFechamento}
-                className="w-full"
-                disabled={transacoesHoje.length === 0}
-              >
-                Realizar Fechamento
-              </Button>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-3 rounded-lg bg-destructive/10">
+                <span className="font-medium">Despesas</span>
+                <span className="font-bold text-lg text-destructive">
+                  R$ {dadosAtual.despesas.toFixed(2)}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center p-3 rounded-lg bg-primary/10">
+                <span className="font-medium">Lucro Atual</span>
+                <span className="font-bold text-lg text-primary">
+                  R$ {dadosAtual.lucroAtual.toFixed(2)}
+                </span>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+
+          {/* Observações */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">
+              Observações (opcional)
+            </label>
+            <Textarea
+              placeholder="Digite suas observações sobre este período..."
+              value={observacoes}
+              onChange={(e) => setObservacoes(e.target.value)}
+              className="min-h-20"
+            />
+          </div>
+
+          {/* Botão Realizar Fechamento */}
+          <Button className="w-full h-12">
+            <Calculator className="mr-2 h-5 w-5" />
+            Realizar Fechamento
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Histórico de Fechamentos */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <FileText className="mr-2 h-5 w-5" />
+            Histórico de Fechamentos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            {historicoFechamentos.map((fechamento) => (
+              <AccordionItem 
+                key={fechamento.id} 
+                value={`item-${fechamento.id}`}
+                className="border-b"
+              >
+                <AccordionTrigger className="flex justify-between items-center py-4 hover:no-underline">
+                  <div className="flex justify-between items-center w-full mr-4">
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium text-base">{fechamento.data}</span>
+                      <span className="text-sm text-muted-foreground">
+                        Lucro: R$ {fechamento.lucro.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm text-success font-medium">
+                        R$ {fechamento.receitas.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <div className="space-y-3 animate-fade-in">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Receitas:</span>
+                          <span className="text-sm font-medium text-success">
+                            R$ {fechamento.receitas.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Compras:</span>
+                          <span className="text-sm font-medium text-destructive">
+                            R$ {fechamento.compras.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Despesas:</span>
+                          <span className="text-sm font-medium text-destructive">
+                            R$ {fechamento.despesas.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Lucro:</span>
+                          <span className="text-sm font-semibold text-primary">
+                            R$ {fechamento.lucro.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {fechamento.observacoes && (
+                      <>
+                        <Separator className="my-3" />
+                        <div>
+                          <span className="text-sm text-muted-foreground block mb-1">Observações:</span>
+                          <p className="text-sm">{fechamento.observacoes}</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default Fechamento;

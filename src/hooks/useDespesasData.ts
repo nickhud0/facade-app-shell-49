@@ -3,7 +3,6 @@ import { databaseService, Pendencia } from '@/services/database';
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
 
 // Interface específica para despesas (pendencias do tipo "eu devo")
 export interface Despesa {
@@ -282,7 +281,7 @@ export function useDespesasData(): UseDespesasDataReturn {
       
       // Se voltou online, sincronizar automaticamente
       if (status.connected && wasOffline && supabaseService.getConnectionStatus()) {
-        logger.debug('Auto-syncing despesas after coming back online...');
+        console.log('Auto-syncing despesas after coming back online...');
         syncFromServer().catch(err => 
           console.error('Error auto-syncing despesas:', err)
         );

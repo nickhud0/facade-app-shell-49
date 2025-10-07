@@ -3,7 +3,6 @@ import { databaseService } from '@/services/database';
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
 
 export interface UltimoItem {
   id: number;
@@ -140,7 +139,7 @@ export function useUltimosItens(): UseUltimosItensReturn {
       
       // Se voltou online, sincronizar automaticamente
       if (status.connected && wasOffline && supabaseService.getConnectionStatus()) {
-        logger.debug('Auto-syncing ultimos itens after coming back online...');
+        console.log('Auto-syncing ultimos itens after coming back online...');
         syncFromServer().catch(err => 
           console.error('Error auto-syncing ultimos itens:', err)
         );

@@ -5,10 +5,9 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { formatDate, toYMD } from "@/utils/formatters";
 
 interface Despesa {
   id: number;
@@ -16,8 +15,6 @@ interface Despesa {
   valor: number;
   created_at: string;
 }
-
-import { formatCurrency } from "@/utils/formatters";
 
 const CadastrarDespesa = () => {
   const [descricao, setDescricao] = useState("");
@@ -48,7 +45,7 @@ const CadastrarDespesa = () => {
       id: Date.now(),
       descricao: descricao.trim(),
       valor: parseFloat(valor),
-      created_at: toYMD(new Date())
+      created_at: new Date().toISOString()
     };
 
     // Salvar no localStorage
@@ -151,9 +148,9 @@ const CadastrarDespesa = () => {
             {despesasDoMes.map((despesa) => (
               <div key={despesa.id} className="grid grid-cols-3 gap-4 p-3 bg-muted/20 rounded-lg">
                 <span className="font-medium text-foreground">{despesa.descricao}</span>
-                <span className="font-bold text-destructive">{formatCurrency(despesa.valor)}</span>
+                <span className="font-bold text-destructive">R$ {despesa.valor.toFixed(2)}</span>
                 <span className="text-sm text-muted-foreground">
-                  {formatDate(despesa.created_at)}
+                  {format(new Date(despesa.created_at), "dd/MM/yyyy")}
                 </span>
               </div>
             ))}
@@ -163,7 +160,7 @@ const CadastrarDespesa = () => {
               <div className="flex justify-between items-center p-3 bg-destructive/10 rounded-lg">
                 <span className="font-semibold text-foreground">Total do Mês:</span>
                 <span className="font-bold text-lg text-destructive">
-                  {formatCurrency(despesasDoMes.reduce((acc, despesa) => acc + despesa.valor, 0))}
+                  R$ {despesasDoMes.reduce((acc, despesa) => acc + despesa.valor, 0).toFixed(2)}
                 </span>
               </div>
             </div>

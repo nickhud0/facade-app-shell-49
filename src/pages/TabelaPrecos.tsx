@@ -1,39 +1,88 @@
 import { ArrowLeft, Search, Edit, List, Plus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useOfflineData } from "@/hooks/useOfflineData";
+import { Material } from "@/services/database";
 import { useToast } from "@/hooks/use-toast";
-// import { NetworkStatus } from "@/components/NetworkStatus";
-import { formatCurrency } from "@/utils/formatters";
-import { LoadingSpinner, ErrorState, PageWrapper, EmptyState } from "@/components/ui/loading-states";
-import { useMateriais } from "@/hooks/useStandardData";
+import { NetworkStatus } from "@/components/NetworkStatus";
 
 const TabelaPrecos = () => {
   const navigate = useNavigate();
-  const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [novoPrecoVenda, setNovoPrecoVenda] = useState("");
   const [novoPrecoCompra, setNovoPrecoCompra] = useState("");
   const [busca, setBusca] = useState("");
   const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todas");
+  
+  const { data: materiais, loading, updateItem } = useOfflineData<Material>('materiais');
+  
+  // Dados fictícios para demonstração
+  const materiaisFicticios: Material[] = [
+    {
+      id: 1,
+      nome: "Cobre Limpo",
+      preco_compra_kg: 28.00,
+      preco_venda_kg: 32.00,
+      categoria: "Cobre",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 2,
+      nome: "Ferro Velho",
+      preco_compra_kg: 0.80,
+      preco_venda_kg: 1.20,
+      categoria: "Metais Ferrosos", 
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 3,
+      nome: "Alumínio",
+      preco_compra_kg: 10.00,
+      preco_venda_kg: 14.50,
+      categoria: "Alumínio",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 4,
+      nome: "Aço Inox",
+      preco_compra_kg: 23.75,
+      preco_venda_kg: 28.20,
+      categoria: "Metais Não-Ferrosos",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 5,
+      nome: "Bateria de Carro",
+      preco_compra_kg: 2.80,
+      preco_venda_kg: 4.20,
+      categoria: "Sucata Eletrônica",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
+  
+  // Usar dados fictícios se não houver materiais reais
+  const materiaisParaExibir = materiais.length > 0 ? materiais : materiaisFicticios;
   const { toast } = useToast();
-  
-  const { materiais, loading, error, refreshMateriais } = useMateriais();
-  
-  // Usar materiais reais do hook
-  const materiaisParaExibir = materiais;
 
   // Obter categorias únicas
-  const categorias: string[] = ["Todas", ...Array.from(new Set(materiaisParaExibir.map(m => m.categoria || "Outros")))];
+  const categorias = ["Todas", ...Array.from(new Set(materiaisParaExibir.map(m => m.categoria || "Outros")))];
 
-  const handleEditClick = (material: any) => {
+  const handleEditClick = (material: Material) => {
     setSelectedMaterial(material);
-    setNovoPrecoVenda(material.preco_venda.toString());
-    setNovoPrecoCompra(material.preco_compra.toString());
+    setNovoPrecoVenda(material.preco_venda_kg.toString());
+    setNovoPrecoCompra(material.preco_compra_kg.toString());
     setIsEditDialogOpen(true);
   };
 
@@ -52,8 +101,10 @@ const TabelaPrecos = () => {
       return;
     }
 
-    // TODO: Implementar atualização de preços quando integrado ao backend
-    const sucesso = true;
+    const sucesso = await updateItem(selectedMaterial.id!, {
+      preco_venda_kg: novoPrecoVendaNum,
+      preco_compra_kg: novoPrecoCompraNum
+    });
 
     if (sucesso) {
       toast({
@@ -88,7 +139,7 @@ const TabelaPrecos = () => {
           </Button>
           <h1 className="text-2xl font-bold text-foreground">Tabela de Preços</h1>
         </div>
-        {/* <NetworkStatus /> */}
+        <NetworkStatus />
       </div>
 
       {/* Busca */}
@@ -117,21 +168,26 @@ const TabelaPrecos = () => {
         ))}
       </div>
 
-      <PageWrapper 
-        loading={loading} 
-        error={error} 
-        onRetry={refreshMateriais}
-        loadingMessage="Carregando materiais..."
-      >
-        {materiaisParaExibir.length === 0 ? (
-          <EmptyState
-            icon={List}
-            title="Nenhum material cadastrado"
-            description="Cadastre materiais para gerenciar seus preços."
-            actionLabel="Cadastrar Primeiro Material"
-            onAction={() => navigate("/cadastrar-material")}
-          />
-        ) : (
+      {/* Conteúdo */}
+      {loading ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Carregando materiais...</p>
+        </div>
+      ) : materiaisParaExibir.length === 0 ? (
+        <Card className="p-8 text-center">
+          <List className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Nenhum material cadastrado</h3>
+          <p className="text-muted-foreground mb-4">
+            Cadastre materiais para gerenciar seus preços.
+          </p>
+          <Link to="/cadastrar-material">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Cadastrar Primeiro Material
+            </Button>
+          </Link>
+        </Card>
+      ) : (
         <>
           {/* Lista de Produtos */}
           <div className="space-y-4 mb-6">
@@ -155,17 +211,17 @@ const TabelaPrecos = () => {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex flex-col items-center p-2 bg-primary/5 rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-1">Compra</p>
-                    <p className="text-sm font-bold text-primary">
-                      {formatCurrency(material.preco_compra)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="text-center sm:text-left">
+                    <p className="text-xs text-muted-foreground mb-1">Preço Compra</p>
+                    <p className="text-lg font-bold text-primary whitespace-nowrap">
+                      R$ {material.preco_compra_kg.toFixed(2)}/kg
                     </p>
                   </div>
-                  <div className="flex flex-col items-center p-2 bg-success/5 rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-1">Venda</p>
-                    <p className="text-sm font-bold text-success">
-                      {formatCurrency(material.preco_venda)}
+                  <div className="text-center sm:text-left">
+                    <p className="text-xs text-muted-foreground mb-1">Preço Venda</p>
+                    <p className="text-lg font-bold text-success whitespace-nowrap">
+                      R$ {material.preco_venda_kg.toFixed(2)}/kg
                     </p>
                   </div>
                 </div>
@@ -183,14 +239,23 @@ const TabelaPrecos = () => {
 
           {/* Resumo */}
           <Card className="p-4 bg-gradient-to-r from-primary/5 to-accent/5">
-            <div className="text-center">
-              <h3 className="font-semibold text-foreground">Total de Materiais</h3>
-              <p className="text-2xl font-bold text-primary">{materiaisFiltrados.length}</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-foreground">Total de Materiais</h3>
+                <p className="text-2xl font-bold text-primary">{materiaisFiltrados.length}</p>
+              </div>
+              <div className="text-right">
+                <Link to="/cadastrar-material">
+                  <Button variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Novo Material
+                  </Button>
+                </Link>
+              </div>
             </div>
           </Card>
         </>
-        )}
-      </PageWrapper>
+      )}
 
       {/* Dialog de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -205,8 +270,8 @@ const TabelaPrecos = () => {
                 <h3 className="font-semibold">{selectedMaterial.nome}</h3>
                 <p className="text-sm text-muted-foreground">{selectedMaterial.categoria || "Outros"}</p>
                 <div className="text-sm text-muted-foreground space-y-1">
-                  <p>Preço compra: {formatCurrency(selectedMaterial.preco_compra)}/kg</p>
-                  <p>Preço venda atual: {formatCurrency(selectedMaterial.preco_venda)}/kg</p>
+                  <p>Preço compra: R$ {selectedMaterial.preco_compra_kg.toFixed(2)}/kg</p>
+                  <p>Preço venda atual: R$ {selectedMaterial.preco_venda_kg.toFixed(2)}/kg</p>
                 </div>
               </div>
 
@@ -244,13 +309,13 @@ const TabelaPrecos = () => {
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Novo Preço Compra:</span>
                       <span className="text-lg font-bold text-primary">
-                        {formatCurrency(parseFloat(novoPrecoCompra))}/kg
+                        R$ {parseFloat(novoPrecoCompra).toFixed(2)}/kg
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Novo Preço Venda:</span>
                       <span className="text-lg font-bold text-success">
-                        {formatCurrency(parseFloat(novoPrecoVenda))}/kg
+                        R$ {parseFloat(novoPrecoVenda).toFixed(2)}/kg
                       </span>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-border">

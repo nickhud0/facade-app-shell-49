@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
-import { toYMD } from '@/utils/formatters';
 
 export interface PeriodoRelatorio {
   dataInicio: string;
@@ -212,24 +211,24 @@ export function useRelatoriosData(): UseRelatoriosDataReturn {
   // Gerar relatórios pré-definidos
   const gerarRelatorioDiario = useCallback(async () => {
     const hoje = new Date();
-    const inicio = toYMD(new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()));
-    const fim = toYMD(new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1));
+    const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString();
+    const fim = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1).toISOString();
     
     await gerarRelatorio({ dataInicio: inicio, dataFim: fim });
   }, [gerarRelatorio]);
 
   const gerarRelatorioMensal = useCallback(async () => {
     const hoje = new Date();
-    const inicio = toYMD(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
-    const fim = toYMD(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1));
+    const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString();
+    const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1).toISOString();
     
     await gerarRelatorio({ dataInicio: inicio, dataFim: fim });
   }, [gerarRelatorio]);
 
   const gerarRelatorioAnual = useCallback(async () => {
     const hoje = new Date();
-    const inicio = toYMD(new Date(hoje.getFullYear(), 0, 1));
-    const fim = toYMD(new Date(hoje.getFullYear() + 1, 0, 1));
+    const inicio = new Date(hoje.getFullYear(), 0, 1).toISOString();
+    const fim = new Date(hoje.getFullYear() + 1, 0, 1).toISOString();
     
     await gerarRelatorio({ dataInicio: inicio, dataFim: fim });
   }, [gerarRelatorio]);

@@ -1,7 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { databaseService, Material, Transacao, Vale, Despesa, Pendencia, Comanda } from './database';
-import { logger } from '@/utils/logger';
-import { toYMD } from '@/utils/formatters';
 
 export interface SupabaseConfig {
   url: string;
@@ -26,7 +24,7 @@ class SupabaseService {
       }
 
       this.isConnected = true;
-      logger.debug('Supabase connection established');
+      console.log('Supabase connection established');
       return true;
     } catch (error) {
       console.error('Error initializing Supabase:', error);
@@ -59,7 +57,7 @@ class SupabaseService {
     }
 
     try {
-      logger.debug('Starting full data sync...');
+      console.log('Starting full data sync...');
 
       // Sync materiais
       await this.syncMateriais();
@@ -79,7 +77,7 @@ class SupabaseService {
       // Sync comandas (últimas 20)
       await this.syncComandas();
 
-      logger.debug('Full data sync completed');
+      console.log('Full data sync completed');
     } catch (error) {
       console.error('Error during full sync:', error);
       throw error;
@@ -331,7 +329,7 @@ class SupabaseService {
         valor: despesa.valor,
         tipo: 'eu devo',
         status: 'pendente',
-        data: despesa.created_at || toYMD(new Date())
+        data: despesa.created_at || new Date().toISOString()
       }]);
 
     return !error;
@@ -405,7 +403,7 @@ class SupabaseService {
           cliente: comanda.cliente,
           dispositivo_update: comanda.dispositivo,
           observacoes: comanda.observacoes,
-          data: comanda.created_at || toYMD(new Date())
+          data: comanda.created_at || new Date().toISOString()
         }])
         .select()
         .single();
@@ -439,39 +437,6 @@ class SupabaseService {
       console.error('Error in finalizarComanda:', error);
       return false;
     }
-  }
-
-  // Métodos públicos para a fila offline
-  async syncComanda(dados: any): Promise<boolean> {
-    return this.createComanda(dados);
-  }
-
-  async syncComandaUpdate(dados: any): Promise<boolean> {
-    return this.updateComanda(dados.id, dados);
-  }
-
-  async syncMaterial(dados: any): Promise<boolean> {
-    return this.createMaterial(dados);
-  }
-
-  async syncMaterialUpdate(dados: any): Promise<boolean> {
-    return this.updateMaterial(dados.id, dados);
-  }
-
-  async syncVale(dados: any): Promise<boolean> {
-    return this.createVale(dados);
-  }
-
-  async syncDespesa(dados: any): Promise<boolean> {
-    return this.createDespesa(dados);
-  }
-
-  async syncPendencia(dados: any): Promise<boolean> {
-    return this.createPendencia(dados);
-  }
-
-  async syncPendenciaUpdate(dados: any): Promise<boolean> {
-    return this.updatePendencia(dados.id, dados);
   }
 
   // BUSCA NO HISTÓRICO COMPLETO (somente quando online)
@@ -518,167 +483,6 @@ class SupabaseService {
       ...data,
       itens: typeof data.itens === 'string' ? JSON.parse(data.itens) : data.itens
     };
-  }
-
-  // BUSCAR ESTOQUE ATUAL DA VIEW estoque_atual
-  async buscarEstoqueAtual(): Promise<any[]> {
-    try {
-      // Se offline, usar cache
-      if (!this.client || !this.isConnected) {
-        const cache = localStorage.getItem('estoqueAtualCache');
-        return cache ? JSON.parse(cache) : [];
-      }
-
-      const { data, error } = await this.client
-        .from('estoque_atual')
-        .select('*')
-        .order('material_nome', { ascending: true });
-
-      if (error) throw error;
-
-      // Salva no cache offline
-      const result = data || [];
-      localStorage.setItem('estoqueAtualCache', JSON.stringify(result));
-      
-      return result;
-    } catch (error) {
-      console.error('Erro ao buscar estoque atual:', error);
-      
-      // Fallback para cache offline
-      const cache = localStorage.getItem('estoqueAtualCache');
-      return cache ? JSON.parse(cache) : [];
-    }
-  }
-
-  // BUSCAR SOBRAS DA VIEW relatorio_vendas_excedentes
-  async buscarSobras(periodo: 'diario' | 'mensal' | 'anual' | 'personalizado', dataInicio?: Date, dataFim?: Date): Promise<any[]> {
-    try {
-      // Se offline, usar cache
-      if (!this.client || !this.isConnected) {
-        const cache = localStorage.getItem('sobrasCache');
-        return cache ? JSON.parse(cache) : [];
-      }
-
-      let query = this.client.from('relatorio_vendas_excedentes').select('*');
-
-      // Aplica filtros de período
-      switch (periodo) {
-        case 'diario':
-          query = query.gte('data', toYMD(new Date()));
-          break;
-        case 'mensal':
-          const inicioMes = new Date();
-          inicioMes.setDate(1);
-          query = query.gte('data', toYMD(inicioMes));
-          break;
-        case 'anual':
-          const inicioAno = new Date();
-          inicioAno.setMonth(0, 1);
-          query = query.gte('data', toYMD(inicioAno));
-          break;
-        case 'personalizado':
-          if (dataInicio && dataFim) {
-            query = query
-              .gte('data', toYMD(dataInicio))
-              .lte('data', toYMD(dataFim));
-          }
-          break;
-      }
-
-      // Ordenar por data mais recente primeira
-      query = query.order('data', { ascending: false });
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      // Salva no cache offline
-      const result = data || [];
-      localStorage.setItem('sobrasCache', JSON.stringify(result));
-      
-      return result;
-    } catch (error) {
-      console.error('Erro ao buscar sobras:', error);
-      
-      // Fallback para cache offline
-      const cache = localStorage.getItem('sobrasCache');
-      return cache ? JSON.parse(cache) : [];
-    }
-  }
-}
-
-// Função standalone para buscar sobras
-export async function buscarSobras(periodo: string, dataInicio?: string, dataFim?: string) {
-  try {
-    // Se offline, usar cache
-    if (!supabaseService.client || !supabaseService.getConnectionStatus()) {
-      const cache = localStorage.getItem("sobrasCache");
-      return cache ? JSON.parse(cache) : [];
-    }
-
-    let query = supabaseService.client.from("relatorio_vendas_excedentes").select("*");
-
-    const hoje = new Date();
-    let dataInicioFiltro: string;
-    let dataFimFiltro: string;
-
-    // Função para converter data para YYYY-MM-DD sem problemas de fuso
-    const toYMD = (d: Date | string) => {
-      const x = typeof d === 'string' ? new Date(d) : d;
-      return toYMD(x);
-    };
-
-    switch (periodo) {
-      case 'diario':
-        dataInicioFiltro = toYMD(hoje);
-        dataFimFiltro = dataInicioFiltro;
-        break;
-      case 'mensal':
-        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        dataInicioFiltro = toYMD(inicioMes);
-        dataFimFiltro = toYMD(hoje);
-        break;
-      case 'anual':
-        const inicioAno = new Date(hoje.getFullYear(), 0, 1);
-        dataInicioFiltro = toYMD(inicioAno);
-        dataFimFiltro = toYMD(hoje);
-        break;
-      case 'personalizado':
-        if (!dataInicio || !dataFim) {
-          throw new Error('Datas de início e fim são obrigatórias para período personalizado');
-        }
-        dataInicioFiltro = dataInicio;
-        dataFimFiltro = dataFim;
-        break;
-      default:
-        throw new Error('Período inválido');
-    }
-
-    query = query
-      .gte('data', dataInicioFiltro)
-      .lte('data', dataFimFiltro)
-      .order('data', { ascending: false });
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("Erro ao buscar sobras:", error);
-      throw error;
-    }
-
-    // Salvar cache offline
-    if (data) {
-      localStorage.setItem("sobrasCache", JSON.stringify(data));
-      localStorage.setItem('sobras_last_update', new Date().toISOString());
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error("Erro ao buscar sobras:", error);
-    
-    // Fallback para cache offline
-    const cache = localStorage.getItem("sobrasCache");
-    return cache ? JSON.parse(cache) : [];
   }
 }
 

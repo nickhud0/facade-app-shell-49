@@ -3,7 +3,6 @@ import { databaseService, Comanda } from '@/services/database';
 import { supabaseService } from '@/services/supabase';
 import { networkService } from '@/services/networkService';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
 
 export interface ComandaDetalhada extends Comanda {
   dispositivo_update?: string;
@@ -226,7 +225,7 @@ export function useComandaHistory(): UseComandaHistoryReturn {
       
       // Se voltou online, sincronizar automaticamente
       if (status.connected && wasOffline && supabaseService.getConnectionStatus()) {
-        logger.debug('Auto-syncing comanda history after coming back online...');
+        console.log('Auto-syncing comanda history after coming back online...');
         syncFromServer().catch(err => 
           console.error('Error auto-syncing comanda history:', err)
         );

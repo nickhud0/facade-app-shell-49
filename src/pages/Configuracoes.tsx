@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import React, { useState, useEffect } from "react";
-import { logger } from '@/utils/logger';
-import { notifyError } from '@/utils/errorHandler';
+import { useState, useEffect } from "react";
 import { appService } from "@/services/appService";
 import { prefixoService } from "@/services/prefixoService";
 import { useToast } from "@/hooks/use-toast";
@@ -37,7 +35,7 @@ const Configuracoes = () => {
       setSupabaseUrl(credentials.url || "");
       setSupabaseKey(credentials.anonKey || "");
     } catch (error) {
-      notifyError(error, 'Carregar Configurações');
+      console.error('Error loading credentials:', error);
     }
   };
 
@@ -48,7 +46,7 @@ const Configuracoes = () => {
       setPrefixoDispositivo(prefixo);
       setEstatisticasPrefixo(stats);
     } catch (error) {
-      notifyError(error, 'Carregar Estatísticas Prefixo');
+      console.error('Error loading prefixo config:', error);
     }
   };
 

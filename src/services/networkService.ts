@@ -1,7 +1,6 @@
 import { Network } from '@capacitor/network';
 import { supabaseService } from './supabase';
 import { databaseService } from './database';
-import { logger } from '@/utils/logger';
 
 export interface NetworkStatus {
   connected: boolean;
@@ -21,7 +20,7 @@ class NetworkService {
 
       // Escutar mudanças na conectividade
       Network.addListener('networkStatusChange', async (status) => {
-        logger.debug('Network status changed:', status);
+        console.log('Network status changed:', status);
         
         const wasOnline = this.isOnline;
         this.isOnline = status.connected;
@@ -38,7 +37,7 @@ class NetworkService {
         }
       });
 
-      logger.debug('Network service initialized. Online:', this.isOnline);
+      console.log('Network service initialized. Online:', this.isOnline);
     } catch (error) {
       console.warn('Network service initialization failed, using fallback:', error);
       // Assumir online como padrão se Capacitor Network falhar no web
@@ -84,13 +83,13 @@ class NetworkService {
 
   private async handleOnlineReconnection(): Promise<void> {
     if (this.syncInProgress) {
-      logger.debug('Sync already in progress, skipping...');
+      console.log('Sync already in progress, skipping...');
       return;
     }
 
     try {
       this.syncInProgress = true;
-      logger.debug('Device came back online, starting sync...');
+      console.log('Device came back online, starting sync...');
 
       // Verificar se a conexão com Supabase ainda está válida
       const supabaseConnected = await supabaseService.testConnection();
@@ -98,12 +97,12 @@ class NetworkService {
       if (supabaseConnected) {
         // Processar fila de sincronização
         const syncResult = await supabaseService.processSyncQueue();
-        logger.debug('Sync completed:', syncResult);
+        console.log('Sync completed:', syncResult);
 
         // Se houve sincronização bem-sucedida, atualizar cache
         if (syncResult.success > 0) {
           await supabaseService.syncAllData();
-          logger.debug('Local cache updated with latest data');
+          console.log('Local cache updated with latest data');
         }
 
         // Notificar sobre sincronização

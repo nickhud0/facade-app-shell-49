@@ -1,5 +1,5 @@
 import { ArrowLeft, AlertCircle, Plus, CreditCard, Edit } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -10,10 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import React, { useState } from "react";
-import { getSyncIcon, getSyncTooltip, getSyncIconColor } from "@/utils/syncStatus";
-import { formatCurrency } from "@/utils/formatters";
-import { LoadingSpinner, ErrorState, PageWrapper, EmptyState } from "@/components/ui/loading-states";
+import { useState } from "react";
 
 // Dados mock para pendências
 const pendenciasIniciais = [
@@ -177,7 +174,7 @@ const Pendencias = () => {
             <p className="text-sm text-muted-foreground">Total Pendente</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-destructive">{formatCurrency(resumoPendencias.valorTotal)}</p>
+            <p className="text-2xl font-bold text-destructive">R$ {resumoPendencias.valorTotal.toFixed(2)}</p>
             <p className="text-sm text-muted-foreground">Valor Pendente</p>
           </div>
         </div>
@@ -285,23 +282,9 @@ const Pendencias = () => {
                   </Badge>
                 </div>
                 
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-semibold text-foreground">
-                    {pendencia.cliente}
-                  </h4>
-                  {(() => {
-                    const syncStatus = (pendencia as any).sincronizado ? "synced" : "pending";
-                    const SyncIcon = getSyncIcon(syncStatus);
-                    return (
-                      <span 
-                        title={getSyncTooltip(syncStatus)}
-                        className={getSyncIconColor(syncStatus)}
-                      >
-                        <SyncIcon className="h-3 w-3" />
-                      </span>
-                    );
-                  })()}
-                </div>
+                <h4 className="font-semibold text-foreground mb-1">
+                  {pendencia.cliente}
+                </h4>
                 
                 {pendencia.observacao && (
                   <p className="text-sm text-muted-foreground mb-2">
@@ -311,9 +294,9 @@ const Pendencias = () => {
               </div>
 
               <div className="text-right">
-                 <p className="font-bold text-lg text-primary">
-                   {formatCurrency(pendencia.valor)}
-                 </p>
+                <p className="font-bold text-lg text-primary">
+                  R$ {pendencia.valor.toFixed(2)}
+                </p>
               </div>
             </div>
 
@@ -339,10 +322,10 @@ const Pendencias = () => {
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Confirmar Pagamento</AlertDialogTitle>
-                       <AlertDialogDescription>
-                         Tem certeza que deseja marcar como paga a pendência de {formatCurrency(pendencia.valor)} de {pendencia.cliente}?
-                         Esta ação não pode ser desfeita.
-                       </AlertDialogDescription>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja marcar como paga a pendência de R$ {pendencia.valor.toFixed(2)} de {pendencia.cliente}?
+                        Esta ação não pode ser desfeita.
+                      </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>

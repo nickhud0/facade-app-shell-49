@@ -1,6 +1,5 @@
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
 import { Capacitor } from '@capacitor/core';
-import { logger } from '@/utils/logger';
 
 export interface SyncQueueItem {
   id_local?: number;
@@ -108,7 +107,7 @@ class DatabaseService {
 
           await this.db.open();
           await this.createTables();
-          logger.debug('SQLite database initialized successfully');
+          console.log('SQLite database initialized successfully');
         } catch (sqliteError) {
           console.warn('SQLite failed on web, using localStorage fallback:', sqliteError);
           // Configurar fallback para localStorage
@@ -126,7 +125,7 @@ class DatabaseService {
 
         await this.db.open();
         await this.createTables();
-        logger.debug('Mobile SQLite database initialized successfully');
+        console.log('Mobile SQLite database initialized successfully');
       }
     } catch (error) {
       console.error('Error initializing database:', error);

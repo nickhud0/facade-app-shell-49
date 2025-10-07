@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from 'date-fns';
 import { useOfflineData } from '@/hooks/useOfflineData';
 import { Transacao, Despesa } from '@/services/database';
-import { logger } from '@/utils/logger';
 
 export interface TransacaoHistorico {
   id: number;
@@ -44,21 +43,20 @@ export interface RelatorioPeriodo {
 }
 
 export const useRelatorios = () => {
-  const [loading, setLoading] = useState(false);
-  const { data: transacoes, refreshData: refreshTransacoes, loading: loadingTransacoes } = useOfflineData<Transacao>('transacoes');
-  const { data: despesas, refreshData: refreshDespesas, loading: loadingDespesas } = useOfflineData<Despesa>('despesas');
+  const { data: transacoes, refreshData: refreshTransacoes } = useOfflineData<Transacao>('transacoes');
+  const { data: despesas, refreshData: refreshDespesas } = useOfflineData<Despesa>('despesas');
 
   // Usar despesas do sistema offline-first em vez de localStorage direto
   useEffect(() => {
     // Usar dados do sistema offline (despesas já vem do useOfflineData)
-    logger.debug('📊 Transações carregadas:', transacoes.length);
-    logger.debug('💰 Despesas carregadas (sistema offline):', despesas.length);
+    console.log('📊 Transações carregadas:', transacoes.length);
+    console.log('💰 Despesas carregadas (sistema offline):', despesas.length);
     
     // Migrar despesas do localStorage para o sistema offline (apenas uma vez)
     const migrateFromLocalStorage = async () => {
       const despesasStorage = JSON.parse(localStorage.getItem('despesas') || '[]');
       if (despesasStorage.length > 0 && despesas.length === 0) {
-        logger.debug('🔄 Migrando despesas do localStorage para sistema offline...');
+        console.log('🔄 Migrando despesas do localStorage para sistema offline...');
         // Adicionar despesas ao sistema offline (seria implementado no useOfflineData para despesas)
       }
     };
@@ -84,8 +82,8 @@ export const useRelatorios = () => {
 
   // Função para calcular relatório para um período específico
   const calcularRelatorio = (dataInicio: Date, dataFim: Date): RelatorioPeriodo => {
-    logger.debug('📊 Calculando relatório de', dataInicio.toDateString(), 'até', dataFim.toDateString());
-    logger.debug('📊 Total de transações disponíveis:', transacoes.length);
+    console.log('📊 Calculando relatório de', dataInicio.toDateString(), 'até', dataFim.toDateString());
+    console.log('📊 Total de transações disponíveis:', transacoes.length);
     
     // Filtrar transações do período
     const transacoesPeriodo = transacoes.filter(transacao => {
@@ -96,7 +94,7 @@ export const useRelatorios = () => {
       });
     });
     
-    logger.debug('📊 Transações no período:', transacoesPeriodo.length);
+    console.log('📊 Transações no período:', transacoesPeriodo.length);
 
     // Filtrar despesas do período (usar dados do sistema offline)
     const despesasPeriodo = despesas.filter(despesa => {
@@ -111,15 +109,15 @@ export const useRelatorios = () => {
     const compras = transacoesPeriodo.filter(t => t.tipo === 'compra');
     const vendas = transacoesPeriodo.filter(t => t.tipo === 'venda');
     
-    logger.debug('📊 Compras no período:', compras.length);
-    logger.debug('📊 Vendas no período:', vendas.length);
+    console.log('📊 Compras no período:', compras.length);
+    console.log('📊 Vendas no período:', vendas.length);
 
     const totalCompras = compras.reduce((acc, transacao) => acc + transacao.valor_total, 0);
     const totalVendas = vendas.reduce((acc, transacao) => acc + transacao.valor_total, 0);
     const totalDespesas = despesasPeriodo.reduce((acc, despesa) => acc + despesa.valor, 0);
     const lucro = totalVendas - totalCompras - totalDespesas;
     
-    logger.debug('💰 Totais calculados:', { totalCompras, totalVendas, totalDespesas, lucro });
+    console.log('💰 Totais calculados:', { totalCompras, totalVendas, totalDespesas, lucro });
 
     // Agrupar materiais por tipo de transação
     const comprasPorMaterial = new Map<string, { kg: number; valor: number }>();
@@ -182,13 +180,8 @@ export const useRelatorios = () => {
   };
 
   const refreshData = () => {
-    setLoading(true);
-    Promise.all([
-      refreshTransacoes(),
-      refreshDespesas()
-    ]).finally(() => {
-      setLoading(false);
-    });
+    refreshTransacoes();
+    refreshDespesas();
   };
 
   return {
@@ -197,7 +190,6 @@ export const useRelatorios = () => {
     relatorioAnual,
     relatorioPersonalizado,
     refreshData,
-    loading: loading || loadingTransacoes || loadingDespesas,
     hasData: transacoes.length > 0
   };
 };

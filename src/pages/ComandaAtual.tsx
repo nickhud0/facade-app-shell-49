@@ -1,8 +1,6 @@
 import { ArrowLeft, Plus, Trash2, Save, Edit, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import React, { useState, useEffect } from "react";
-import { logger } from '@/utils/logger';
-import { notifyError } from '@/utils/errorHandler';
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -16,9 +14,6 @@ import { useComandasOffline } from "@/hooks/useComandasOffline";
 import { prefixoService } from "@/services/prefixoService";
 import { Transacao } from "@/services/database";
 import { useToast } from "@/hooks/use-toast";
-import { toYMD, formatDate } from "@/utils/formatters";
-
-import { formatCurrency } from "@/utils/formatters";
 
 const ComandaAtual = () => {
   // Agrupar estados relacionados para reduzir re-renders
@@ -127,7 +122,7 @@ const ComandaAtual = () => {
   };
 
   const handleFinalizarComanda = async () => {
-    logger.debug('🚀 Finalizando comanda com', comandaState.itens.length, 'itens');
+    console.log('🚀 Finalizando comanda com', comandaState.itens.length, 'itens');
     
     // Salvar cada item da comanda como transação individual
     for (const item of comandaState.itens) {
@@ -139,10 +134,10 @@ const ComandaAtual = () => {
         peso: item.quantidade,
         valor_total: item.total,
         observacoes: comandaState.observacao || undefined,
-        created_at: toYMD(new Date())
+        created_at: new Date().toISOString()
       };
 
-      logger.debug('💾 Salvando transação:', transacao);
+      console.log('💾 Salvando transação:', transacao);
       await createItem(transacao);
     }
     
@@ -169,11 +164,11 @@ const ComandaAtual = () => {
         preco: item.preco,
         total: item.total
       })),
-      created_at: toYMD(agora),
-      updated_at: toYMD(agora)
+      created_at: agora.toISOString(),
+      updated_at: agora.toISOString()
     };
 
-    logger.debug('💾 Salvando comanda completa:', comandaParaSalvar);
+    console.log('💾 Salvando comanda completa:', comandaParaSalvar);
     
     // Usar o sistema de comandas offline-first
     const success = await criarComanda(comandaParaSalvar);
@@ -236,14 +231,14 @@ const ComandaAtual = () => {
               Nova Comanda
             </h2>
             <p className="text-sm text-muted-foreground">
-              {comandaState.tipo === "venda" ? "Venda" : "Compra"} • Iniciada às {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              {comandaState.tipo === "venda" ? "Venda" : "Compra"} • Iniciada às 14:35
             </p>
           </div>
           <div className="text-right">
             <p className="text-sm text-muted-foreground">Total</p>
-             <p className="text-3xl font-bold text-success">
-               {formatCurrency(totalComanda)}
-             </p>
+            <p className="text-3xl font-bold text-success">
+              R$ {totalComanda.toFixed(2)}
+            </p>
           </div>
         </div>
       </Card>
@@ -257,9 +252,9 @@ const ComandaAtual = () => {
                 <h3 className="font-semibold text-foreground text-base">
                   {item.material}
                 </h3>
-                 <p className="text-xs text-muted-foreground">
-                   {formatCurrency(item.preco)} por kg
-                 </p>
+                <p className="text-xs text-muted-foreground">
+                  R$ {item.preco.toFixed(2)} por kg
+                </p>
                 <p className="text-sm font-medium text-foreground">
                   Quantidade: {item.quantidade} kg
                 </p>
@@ -285,9 +280,9 @@ const ComandaAtual = () => {
             </div>
             
             <div className="flex justify-end">
-               <p className="font-bold text-lg text-foreground">
-                 {formatCurrency(item.total)}
-               </p>
+              <p className="font-bold text-lg text-foreground">
+                R$ {item.total.toFixed(2)}
+              </p>
             </div>
           </Card>
         ))}
@@ -333,17 +328,17 @@ const ComandaAtual = () => {
       {/* Resumo e Ações */}
       <Card className="p-4 shadow-lg">
         <div className="space-y-4">
-           <div className="flex justify-between items-center">
-             <span className="text-lg">Subtotal:</span>
-             <span className="text-lg font-semibold">{formatCurrency(totalComanda)}</span>
-           </div>
+          <div className="flex justify-between items-center">
+            <span className="text-lg">Subtotal:</span>
+            <span className="text-lg font-semibold">R$ {totalComanda.toFixed(2)}</span>
+          </div>
           
           <Separator />
           
-           <div className="flex justify-between items-center">
-             <span className="text-xl font-bold">Total:</span>
-             <span className="text-xl font-bold text-success">{formatCurrency(totalComanda)}</span>
-           </div>
+          <div className="flex justify-between items-center">
+            <span className="text-xl font-bold">Total:</span>
+            <span className="text-xl font-bold text-success">R$ {totalComanda.toFixed(2)}</span>
+          </div>
           
           {/* Campo de Observação */}
           <div className="pt-2">
@@ -433,9 +428,9 @@ const ComandaAtual = () => {
               </div>
 
               <div className="p-3 bg-accent/10 rounded-lg">
-                 <p className="text-sm font-medium">
-                   Total: {formatCurrency(comandaState.itemEditando.preco * comandaState.itemEditando.quantidade)}
-                 </p>
+                <p className="text-sm font-medium">
+                  Total: R$ {(comandaState.itemEditando.preco * comandaState.itemEditando.quantidade).toFixed(2)}
+                </p>
               </div>
 
               <div className="flex space-x-2 pt-4">

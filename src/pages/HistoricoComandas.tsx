@@ -1,6 +1,6 @@
 import { ArrowLeft, Search, FileText, Calendar, ShoppingCart, ShoppingBag, CalendarIcon, Printer, Wifi, WifiOff, RefreshCw } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,8 +13,6 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useComandasOffline } from "@/hooks/useComandasOffline";
 import { formatarCodigoComanda } from "@/utils/comandaCode";
-import { formatDate, formatDateTime, formatCurrency } from "@/utils/formatters";
-import { getSyncIcon, getSyncTooltip, getSyncIconColor } from "@/utils/syncStatus";
 
 // Dados mock para histórico de comandas
 const comandasMock = [
@@ -156,6 +154,21 @@ const HistoricoComandas = () => {
         </div>
         
         <div className="flex items-center gap-2">
+          {pendingSyncCount > 0 && (
+            <Badge variant="secondary" className="text-xs">
+              {pendingSyncCount} pendente{pendingSyncCount > 1 ? 's' : ''}
+            </Badge>
+          )}
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={isOnline ? handleSyncPending : refreshCache}
+            disabled={loadingCache || loadingBusca}
+          >
+            <RefreshCw className={cn("h-4 w-4", (loadingCache || loadingBusca) && "animate-spin")} />
+          </Button>
+          
           {isOnline ? (
             <Wifi className="h-4 w-4 text-success" />
           ) : (
@@ -232,32 +245,18 @@ const HistoricoComandas = () => {
                       <ShoppingCart className="h-4 w-4 text-primary mr-2" />
                     )}
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-foreground text-sm">
-                          {formatarCodigoComanda(comanda)}
-                        </h3>
-                        {(() => {
-                          const syncStatus = (comanda as any).sincronizado ? "synced" : "pending";
-                          const SyncIcon = getSyncIcon(syncStatus);
-                          return (
-                            <span 
-                              title={getSyncTooltip(syncStatus)}
-                              className={getSyncIconColor(syncStatus)}
-                            >
-                              <SyncIcon className="h-3 w-3" />
-                            </span>
-                          );
-                        })()}
-                      </div>
+                      <h3 className="font-semibold text-foreground text-sm">
+                        {formatarCodigoComanda(comanda)}
+                      </h3>
                       <p className="text-xs text-muted-foreground">
                         {comanda.cliente}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                     <p className="font-bold text-foreground text-sm">
-                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(comanda.total)}
-                     </p>
+                    <p className="font-bold text-foreground text-sm">
+                      R$ {comanda.total.toFixed(2)}
+                    </p>
                     <div className="flex items-center gap-1">
                       <span className="text-xs px-1 py-0.5 rounded-full bg-muted text-muted-foreground">
                         {comanda.tipo}
@@ -279,8 +278,8 @@ const HistoricoComandas = () => {
                 <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
                   <span>
                     {comanda.created_at 
-                      ? formatDate(comanda.created_at) + ' às ' + 
-                        formatDateTime(comanda.created_at).split(' às ')[1]
+                      ? new Date(comanda.created_at).toLocaleDateString('pt-BR') + ' às ' + 
+                        new Date(comanda.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
                       : `${(comanda as any).data} às ${(comanda as any).horario}`
                     }
                   </span>
@@ -323,7 +322,7 @@ const HistoricoComandas = () => {
                     <p className="text-muted-foreground">Data:</p>
                     <p className="font-medium">
                       {comanda.created_at 
-                        ? formatDate(comanda.created_at)
+                        ? new Date(comanda.created_at).toLocaleDateString('pt-BR')
                         : (comanda as any).data
                       }
                     </p>
@@ -355,8 +354,8 @@ const HistoricoComandas = () => {
                           <TableRow key={index}>
                             <TableCell className="text-xs">{item.material || item.nome}</TableCell>
                             <TableCell className="text-xs text-center">{item.quantidade}</TableCell>
-                             <TableCell className="text-xs text-right">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.preco)}</TableCell>
-                             <TableCell className="text-xs text-right">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.quantidade * item.preco)}</TableCell>
+                            <TableCell className="text-xs text-right">R$ {item.preco.toFixed(2)}</TableCell>
+                            <TableCell className="text-xs text-right">R$ {(item.quantidade * item.preco).toFixed(2)}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -376,7 +375,7 @@ const HistoricoComandas = () => {
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">Total:</span>
-                    <span className="font-bold text-lg">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(comanda.total)}</span>
+                    <span className="font-bold text-lg">R$ {comanda.total.toFixed(2)}</span>
                   </div>
                 </div>
                 
@@ -403,6 +402,39 @@ const HistoricoComandas = () => {
         )}
       </div>
 
+      {/* Resumo */}
+      <Card className="mt-6 p-4 bg-gradient-to-r from-primary/5 to-primary/10">
+        <h3 className="font-semibold text-foreground mb-3">Resumo</h3>
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <p className="text-2xl font-bold text-primary">{comandasExibidas.length}</p>
+            <p className="text-sm text-muted-foreground">Comandas</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-success">
+              R$ {comandasExibidas.reduce((acc, c) => acc + c.total, 0).toFixed(2)}
+            </p>
+            <p className="text-sm text-muted-foreground">Total</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-accent">
+              R$ {comandasExibidas.length > 0 
+                ? (comandasExibidas.reduce((acc, c) => acc + c.total, 0) / comandasExibidas.length).toFixed(2)
+                : '0,00'
+              }
+            </p>
+            <p className="text-sm text-muted-foreground">Ticket Médio</p>
+          </div>
+        </div>
+        
+        {!isOnline && (
+          <div className="mt-3 pt-3 border-t border-border/10">
+            <p className="text-xs text-muted-foreground text-center">
+              Dados baseados nas últimas 20 comandas em cache local
+            </p>
+          </div>
+        )}
+      </Card>
     </div>
   );
 };
